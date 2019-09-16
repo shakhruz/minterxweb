@@ -13,8 +13,19 @@
   "dependencies": {
     "@quasar/extras": "^1.0.0",
     "axios": "^0.18.1",
+    "bclient": "^0.1.7",
+    "bcoin": "^1.0.2",
+    "bignumber": "^1.1.0",
+    "bitcoin-best-fee": "^0.1.1",
+    "coinmarketcap-api": "^3.0.1",
+    "eth-lightwallet": "^4.0.0",
+    "ethereumjs-tx": "^2.1.1",
+    "minter-js-sdk": "^0.20.1",
     "quasar": "^1.0.0",
-    "vue-i18n": "^8.0.0"
+    "sqlite3": "^4.1.0",
+    "vue-i18n": "^8.0.0",
+    "wallet-address-validator": "^0.2.4",
+    "web3": "^1.2.1"
   },
   "devDependencies": {
     "@quasar/app": "^1.0.0",
