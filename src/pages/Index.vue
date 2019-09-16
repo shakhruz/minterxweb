@@ -12,7 +12,7 @@
           <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Сумма для получения в BTC (резерв 0.1btc)' />
           <div>{{ buy_amount / 100000000 }}btc</div>
           <q-input outlined v-model.number="dest_address" label='Адрес отправки BTC' />
-          <div>Мы продает 1 BTC за {{ bip_sat_price_buy | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price }} USD</div>
+          <div>Мы продаем 1 BTC за {{ bip_btc_sat_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
           <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
           <div v-if="showSendToAddress">Отправьте BIP токены на адрес: Mxf57713dff2d77817208081f60ad6d83bf26cd3c9</div>
           <div v-if="showGotPayment">Перевод в размере 100 BIP для обмена получен</div>
@@ -26,9 +26,10 @@
         <table>
             <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
             <tr><td>BTC</td>{{ bip_btc_sat_buy_price | fullSAT}}</td><td>{{ bip_btc_sat_sell_price | fullSAT}}<td>0.1</td></td>
-            <tr><td>USDT</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>1000</td></tr>
+            <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
         </table>
         <div>В наличии на продажу BIP: 50000</div>
+        <div>Курс BTC/USD: {{ btc_usd_rate }}</div>
       </div>
     </div>
     <div id="history" class="q-pa-md" style="max-width:300px">
@@ -60,10 +61,12 @@
 
 <script>
 // const utils = require('../utils.js')
+const CoinMarketCap = require('coinmarketcap-api')
+const client = new CoinMarketCap('55372c6e-1c9b-4018-aed4-15e7803c4b93')
+
 const spread = 5 // % спрэда
 const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
-
-let rates = {btc_usd: 10300}
+const btc_rate_api = 'https://blockchain.info/ticker'
 
 export default {
   data () {
@@ -81,8 +84,13 @@ export default {
       showGotPayment: true,
       showPaymentSent: true,
       minter_market: null,
-      rates: {btc_usd: 10300}
+      rates: null
     }
+  },
+  created(){
+    this.checkRates(()=>{
+      console.log("rates ready...")
+    })
   },
   methods: {
     createContract () {
@@ -114,54 +122,58 @@ export default {
                             bipPriceUsd: json.data.bipPriceUsd, 
                             bipPriceChange: json.data.bipPriceChange, 
                             marketCap: json.data.marketCap} 
-              callback()
+
+              fetch(btc_rate_api)
+                .then(res => res.json())
+                .then(json => {
+                console.log("btc rate: ", json.USD.last)
+                this.rates = {
+                  btc_usd: json.USD.last
+                  // eth_usd: quote.data.ETH.quote.USD.price,
+                }
+                callback()
+              }).catch(console.error)              
           }
       })       
     },
+    checkRates(callback) {
+      if (this.minter_market!=null  && this.rates !=null) {
+        callback()
+      } else {
+        this.updateRates(()=>{
+          callback()
+        })
+      }
+    }
   },
   computed: {
     bip_btc_sat_buy_price() {
-      if (this.minter_market!=null) {
-        const price = (rates.btc_usd / this.minter_market.bipPriceUsd) // price - сколько стоит 1 BTC
-        return  price - price * (spread / 100)
-      } else {
-        this.updateRates(()=>{
-          const price = (rates.btc_usd / this.minter_market.bipPriceUsd)
+      if (this.minter_market!=null && this.rates != null) {
+          const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
           return  price - price * (spread / 100)
-        })
       }
     },
     bip_btc_sat_sell_price() {
-      if (this.minter_market!=null) {
-        const price = (rates.btc_usd / this.minter_market.bipPriceUsd)
+      if (this.minter_market!=null && this.rates != null) {
+        const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
         return  price + price * (spread / 100)
-      } else {
-        this.updateRates(()=>{
-          const price = (rates.btc_usd / this.minter_market.bipPriceUsd)
-          return  price + price * (spread / 100)
-        })
       }
     },
     bip_usd_buy_price () {
-      if (this.minter_market!=null) {
-        const price = this.minter_market.bipPriceUsd
-        return  price - price * (spread / 100)
-      } else {
-        this.updateRates(()=>{
+      if (this.minter_market!=null && this.rates != null) {
           const price = this.minter_market.bipPriceUsd
           return  price - price * (spread / 100)
-        })
       }
     },
     bip_usd_sell_price () {
-      if (this.minter_market!=null) {
-        const price = this.minter_market.bipPriceUsd
-        return  price + price * (spread / 100)
-      } else {
-        this.updateRates(()=>{
+      if (this.minter_market!=null && this.rates != null) {
           const price = this.minter_market.bipPriceUsd
           return  price + price * (spread / 100)
-        })
+      }
+    },
+    btc_usd_rate () {
+      if (this.minter_market!=null && this.rates != null) {
+        return this.rates.btc_usd
       }
     }
   },
