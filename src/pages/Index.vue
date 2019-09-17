@@ -9,10 +9,10 @@
           <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Сумма для продажи в BIP' />
           <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
           <!-- <q-select outlined v-model="buy_token" :options="buy_tokens_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
-          <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Сумма для получения в BTC (резерв 0.1btc)' />
-          <div>{{ buy_amount / 100000000 }}btc</div>
+          <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Сумма дв BTC' />
+          <div>В наличии на продажу: {{ 0.1 }} BTC</div>
           <q-input outlined v-model.number="dest_address" label='Адрес отправки BTC' />
-          <div>Мы продаем 1 BTC за {{ bip_btc_sat_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
+          <div>Мы продаем 1 BTC за {{ bip_btc_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
           <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
           <div v-if="showSendToAddress">Отправьте BIP токены на адрес: Mxf57713dff2d77817208081f60ad6d83bf26cd3c9</div>
           <div v-if="showGotPayment">Перевод в размере 100 BIP для обмена получен</div>
@@ -25,7 +25,7 @@
         <h3>Обменные курсы</h3>
         <table>
             <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
-            <tr><td>BTC</td>{{ bip_btc_sat_buy_price | fullSAT}}</td><td>{{ bip_btc_sat_sell_price | fullSAT}}<td>0.1</td></td>
+            <tr><td>BTC</td>{{ bip_btc_buy_price | fullSAT}}</td><td>{{ bip_btc_sell_price | fullSAT}}<td>0.1</td></td>
             <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
         </table>
         <div>В наличии на продажу BIP: 50000</div>
@@ -107,10 +107,12 @@ export default {
     },
     updateSellAmount (arg) {
       console.log('updateSellAmount', arg)
-      this.buy_amount = this.sell_amount * this.bip_sat_price_buy
+      this.buy_amount = Number((this.sell_amount / this.bip_btc_buy_price).toFixed(8))
     },
     updateBuyAmount (arg) {
       console.log('update buy amount', arg)
+      this.sell_amount = Math.trunc(this.buy_amount * this.bip_btc_sell_price)
+      // this.sell_amount = this.buy_amount * this.
     },
     updateRates (callback) {
       fetch(`${minterApiUrl}v1/status`)
@@ -147,13 +149,13 @@ export default {
     }
   },
   computed: {
-    bip_btc_sat_buy_price() {
+    bip_btc_buy_price() {
       if (this.minter_market!=null && this.rates != null) {
           const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
           return  price - price * (spread / 100)
       }
     },
-    bip_btc_sat_sell_price() {
+    bip_btc_sell_price() {
       if (this.minter_market!=null && this.rates != null) {
         const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
         return  price + price * (spread / 100)
