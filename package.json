@@ -21,6 +21,7 @@
     "eth-lightwallet": "^4.0.0",
     "ethereumjs-tx": "^2.1.1",
     "minter-js-sdk": "^0.20.1",
+    "minterjs-wallet": "^4.0.1",
     "quasar": "^1.0.0",
     "sqlite3": "^4.1.0",
     "vue-i18n": "^8.0.0",

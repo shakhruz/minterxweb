@@ -11,11 +11,15 @@
           <!-- <q-select outlined v-model="buy_token" :options="buy_tokens_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
           <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Сумма дв BTC' />
           <div>В наличии на продажу: {{ 0.1 }} BTC</div>
-          <q-input outlined v-model.number="dest_address" label='Адрес отправки BTC' />
+          <q-input outlined v-model.number="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
+          <div v-if="showAddressError">Некорректный адрес BTC</div>
           <div>Мы продаем 1 BTC за {{ bip_btc_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
           <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
-          <div v-if="showSendToAddress">Отправьте BIP токены на адрес: Mxf57713dff2d77817208081f60ad6d83bf26cd3c9</div>
-          <div v-if="showGotPayment">Перевод в размере 100 BIP для обмена получен</div>
+          <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
+          <div v-if="showGotPayment">
+            Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
+            Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
+          </div>
           <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>
         </div>
       </div>
@@ -60,19 +64,21 @@
 </template>
 
 <script>
-// const utils = require('../utils.js')
-const CoinMarketCap = require('coinmarketcap-api')
-const client = new CoinMarketCap('55372c6e-1c9b-4018-aed4-15e7803c4b93')
+const btc_rate_api = 'https://blockchain.info/ticker'
+
+const minterWallet = require('minterjs-wallet') 
+const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
+const bip_api_url = 'https://explorer-api.apps.minter.network/api/'
+
+const WAValidator = require('wallet-address-validator')
 
 const spread = 5 // % спрэда
-const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
-const btc_rate_api = 'https://blockchain.info/ticker'
 
 export default {
   data () {
     return {
-      sell_amount: 100,
-      buy_amount: 100,
+      sell_amount: 1000,
+      buy_amount: 0,
       sell_token: 'BIP',
       buy_token: 'BTC',
       dest_address: '',
@@ -80,11 +86,15 @@ export default {
       buy_tokens_options: ['BIP', 'BTC', 'ETH'],
       bip_usd_price: 0.0398,
       bip_sat_price_buy: 385,
-      showSendToAddress: true,
-      showGotPayment: true,
-      showPaymentSent: true,
+      showSendToAddress: false,
+      showGotPayment: false,
+      showPaymentSent: false,
       minter_market: null,
-      rates: null
+      rates: null,
+      bip_address: null,
+      bip_received: 0,
+      btc_to_send: 0,
+      showAddressError: false
     }
   },
   created(){
@@ -92,9 +102,26 @@ export default {
       console.log("rates ready...")
     })
   },
+  mounted() {
+    console.log("mounted...")
+    setTimeout(()=>{
+      this.updateSellAmount(100)
+    }, 2000)
+  },
   methods: {
     createContract () {
       console.log('create contract')
+      console.log("генерируем кошелек BIP:")
+      const wallet = minterWallet.generateWallet()
+      this.bip_address = wallet.getAddressString()
+      console.log("new BIP address", this.bip_address)
+      this.showSendToAddress = true
+      this.waitForBIPpayment(this.bip_address, (trx, user_id)=>{
+        console.log("got BIP payment: ", trx, user_id)
+        this.bip_received = trx.data.value * 1000
+        this.showGotPayment = true
+        this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
+      })
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
@@ -146,6 +173,39 @@ export default {
           callback()
         })
       }
+    },
+    waitForBIPpayment (address, callback, userId) {
+      console.log("waiting for a payment on address " + address + " userId: " + userId)
+      let tries = 60 * 60
+      let interval = setInterval(()=> {
+        console.log("checking trxs on address " + address)
+        fetch(`${bip_api_url}v1/addresses/${address}/transactions`)
+        .then(res => res.json())
+        .then(json => {
+            const data = json.data
+            if (data.length >0 ) {
+                console.log("есть транзакции: ", data.length)
+                for(let trx of data) {
+                  if (trx.data.coin == "BIP" && trx.data.to == this.bip_address) {
+                    console.log(`совпало: ${trx.data.value} ${trx.data.coin} fee: ${trx.fee} from: ${trx.from}  to ${trx.data.to}`)
+                    clearInterval(interval)
+                    callback(trx, userId)
+                  }
+                }
+            }
+        })
+    
+        tries -= 1
+        if (tries < 1) cancelInterval(interval)
+      }, 1000)
+    },
+    validateAddress(address) {
+      var valid = WAValidator.validate(address, 'BTC')
+      if (valid) {
+        this.showAddressError = false
+      } else {
+        this.showAddressError = true
+      }
     }
   },
   computed: {
@@ -185,6 +245,12 @@ export default {
     },
     fullUSD(usd_amount) {
       return Number(usd_amount).toFixed(2)
+    },
+    BIPFormat(bip_amount) {
+      return Number(bip_amount)
+    },
+    satToBTC(sat_amount) {
+      return Number((sat_amount / 100000000).toFixed(8))
     }    
   }
 }
