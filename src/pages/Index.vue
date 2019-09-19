@@ -1,65 +1,75 @@
 <template>
   <q-page class="flex">
-    <div id="calculator" class="q-pa-md">
-      <h3>Продать BIP->BTC</h3>
-      <div>Введите сумму и адрес для отправки:</div>
-      <div class="q-pa-md" style="max-width: 300px">
-        <div class="q-gutter-md">
-          <!-- <q-select outlined v-model="sell_token" :options="sell_tokens_options" label="Продаю" @input="changeSellToken" disable="true"/> -->
-          <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Сумма для продажи в BIP' />
-          <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
-          <!-- <q-select outlined v-model="buy_token" :options="buy_tokens_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
-          <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Сумма дв BTC' />
-          <div>В наличии на продажу: {{ 0.1 }} BTC</div>
-          <q-input outlined v-model.number="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
-          <div v-if="showAddressError">Некорректный адрес BTC</div>
-          <div>Мы продаем 1 BTC за {{ bip_btc_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
-          <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
-          <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
-          <div v-if="showGotPayment">
-            Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
-            Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
+    <q-card class="my-card q-pa-md q-ma-md">
+      <q-card-section>
+        <div class="q-pa-md" style="max-width: 300px">
+          <div class="q-gutter-md">
+            <h3>BIP->BTC</h3>
+            <!-- <q-select outlined v-model="sell_token" :options="sell_tokens_options" label="Продаю" @input="changeSellToken" disable="true"/> -->
+            <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP' />
+            <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
+            <!-- <q-select outlined v-model="buy_token" :options="buy_tokens_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
+            <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
+            <div>В наличии на продажу: {{ 0.1 }} BTC</div>
+            <q-input outlined v-model="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
+            <div v-if="showAddressError">Некорректный адрес BTC</div>
+            <div>Мы продаем 1 BTC за {{ bip_btc_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
+            <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
+            <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
+            <div v-if="showGotPayment">
+              Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
+              Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
+            </div>
+            <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>
           </div>
-          <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>
         </div>
-      </div>
-    </div>
-    <div id="exhange_rates" class="q-pa-md" style="max-width: 300px">
-      <div class="q-gutter-md">
-        <h3>Обменные курсы</h3>
-        <table>
-            <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
-            <tr><td>BTC</td>{{ bip_btc_buy_price | fullSAT}}</td><td>{{ bip_btc_sell_price | fullSAT}}<td>0.1</td></td>
-            <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
-        </table>
-        <div>В наличии на продажу BIP: 50000</div>
-        <div>Курс BTC/USD: {{ btc_usd_rate }}</div>
-      </div>
-    </div>
-    <div id="history" class="q-pa-md" style="max-width:300px">
-      <div class="q-gutter-md">
-        <h3>История операций</h3>
-        <p>Кол-во операций всего/сегодня: 100/1</p>
-        <table>
-          <tr>
-            <td>Время</td>
-            <td>Продажа</td>
-            <td>Транзакция продажи</td>
-            <td>Покупка</td>
-            <td>Транзакция покупки</td>
-            <td>Статус</td>
-          </tr>
-          <tr>
-            <td>15.09 16:25</td>
-            <td>110 BIP</td>
-            <td></td>
-            <td>Покупка</td>
-            <td>Транзакция покупки</td>
-            <td>Статус</td>
-          </tr>
-        </table>
-      </div>
-    </div>
+      </q-card-section>
+    </q-card>
+  </div>
+    <q-card class="my-card q-pa-md q-ma-md">
+      <q-card-section>
+        <div id="exhange_rates" class="q-pa-md" style="max-width: 300px">
+          <div class="q-gutter-md">
+            <h3>Обменные курсы</h3>
+            <table>
+                <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
+                <tr><td>BTC</td>{{ bip_btc_buy_price | fullSAT}}</td><td>{{ bip_btc_sell_price | fullSAT}}<td>0.1</td></td>
+                <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
+            </table>
+            <div>В наличии на продажу BIP: 50000</div>
+            <div>Курс BTC/USD: {{ btc_usd_rate }}</div>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+    <q-card class="my-card q-pa-md q-ma-md">
+      <q-card-section>
+        <div id="history" class="q-pa-md" style="max-width:300px">
+          <div class="q-gutter-md">
+            <h3>История операций</h3>
+            <p>Кол-во операций всего/сегодня: 100/1</p>
+            <table>
+              <tr>
+                <td>Время</td>
+                <td>Продажа</td>
+                <td>Транзакция продажи</td>
+                <td>Покупка</td>
+                <td>Транзакция покупки</td>
+                <td>Статус</td>
+              </tr>
+              <tr>
+                <td>15.09 16:25</td>
+                <td>110 BIP</td>
+                <td></td>
+                <td>Покупка</td>
+                <td>Транзакция покупки</td>
+                <td>Статус</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
@@ -71,6 +81,8 @@ const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
 const bip_api_url = 'https://explorer-api.apps.minter.network/api/'
 
 const WAValidator = require('wallet-address-validator')
+
+const back_url = 'http://localhost:3000/'
 
 const spread = 5 // % спрэда
 
@@ -111,17 +123,38 @@ export default {
   methods: {
     createContract () {
       console.log('create contract')
-      console.log("генерируем кошелек BIP:")
-      const wallet = minterWallet.generateWallet()
-      this.bip_address = wallet.getAddressString()
-      console.log("new BIP address", this.bip_address)
-      this.showSendToAddress = true
-      this.waitForBIPpayment(this.bip_address, (trx, user_id)=>{
-        console.log("got BIP payment: ", trx, user_id)
-        this.bip_received = trx.data.value * 1000
-        this.showGotPayment = true
-        this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
-      })
+
+      const opts = {
+        sell_coin: "BIP",
+        buy_coin: "BTC",
+        sell_amount: this.sell_amount,
+        buy_amount: this.buy_amount,
+        to_address: this.dest_address,
+      }
+
+      fetch(back_url + 'contracts', {
+        method: 'POST',
+        // mode: 'no-cors',
+        body: JSON.stringify(opts),
+        headers: {
+            'Content-Type': 'application/json'
+        }})
+        .then(res => res.json())
+        .then(json => {
+          console.log("new contract: ", json)})
+        .catch(console.error)              
+
+      // console.log("генерируем кошелек BIP:")
+      // const wallet = minterWallet.generateWallet()
+      // this.bip_address = wallet.getAddressString()
+      // console.log("new BIP address", this.bip_address)
+      // this.showSendToAddress = true
+      // this.waitForBIPpayment(this.bip_address, (trx, user_id) => {
+      //   console.log("got BIP payment: ", trx, user_id)
+      //   this.bip_received = trx.data.value * 1000
+      //   this.showGotPayment = true
+      //   this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
+      // })
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
