@@ -118,7 +118,7 @@ export default {
   mounted() {
     console.log("mounted...")
     setTimeout(()=>{
-      this.updateSellAmount(100)
+      this.updateSellAmount(1000)
     }, 2000)
   },
   methods: {
@@ -129,8 +129,8 @@ export default {
         sell_coin: "BIP",
         buy_coin: "BTC",
         sell_amount: this.sell_amount,
-        buy_amount: this.buy_amount,
-        to_address: this.dest_address
+        buy_amount: this.buy_amount * 100000000,
+        toAddress: this.dest_address
       }
 
       fetch(back_url + 'contracts', {
