@@ -106,7 +106,8 @@ export default {
       bip_address: null,
       bip_received: 0,
       btc_to_send: 0,
-      showAddressError: false
+      showAddressError: false,
+      contract: null
     }
   },
   created(){
@@ -129,7 +130,7 @@ export default {
         buy_coin: "BTC",
         sell_amount: this.sell_amount,
         buy_amount: this.buy_amount,
-        to_address: this.dest_address,
+        to_address: this.dest_address
       }
 
       fetch(back_url + 'contracts', {
@@ -141,20 +142,22 @@ export default {
         }})
         .then(res => res.json())
         .then(json => {
-          console.log("new contract: ", json)})
+          console.log("new contract: ", json)
+          this.contract = json
+          this.processContract()
+        })
         .catch(console.error)              
-
-      // console.log("генерируем кошелек BIP:")
-      // const wallet = minterWallet.generateWallet()
-      // this.bip_address = wallet.getAddressString()
-      // console.log("new BIP address", this.bip_address)
-      // this.showSendToAddress = true
-      // this.waitForBIPpayment(this.bip_address, (trx, user_id) => {
-      //   console.log("got BIP payment: ", trx, user_id)
-      //   this.bip_received = trx.data.value * 1000
-      //   this.showGotPayment = true
-      //   this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
-      // })
+    },
+    processContract() {
+      this.bip_address = this.contract.receivingAddress
+      console.log("new BIP address", this.bip_address)
+      this.showSendToAddress = true
+      this.waitForBIPpayment(this.bip_address, (trx, user_id) => {
+        console.log("got BIP payment: ", trx, user_id)
+        this.bip_received = trx.data.value * 1000
+        this.showGotPayment = true
+        this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
+      })
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
