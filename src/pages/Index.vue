@@ -5,16 +5,15 @@
         <div class="q-pa-md" style="max-width: 300px">
           <div class="q-gutter-md">
             <h3>BIP->BTC</h3>
-            <!-- <q-select outlined v-model="sell_token" :options="sell_tokens_options" label="Продаю" @input="changeSellToken" disable="true"/> -->
+            <!-- <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="Продаю" @input="changeSellToken" disable="true"/> -->
             <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP' />
             <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
-            <!-- <q-select outlined v-model="buy_token" :options="buy_tokens_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
+            <!-- <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
             <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
-            <div>В наличии на продажу: {{ 0.1 }} BTC</div>
+            <!-- <div>В наличии на продажу: {{ 0.1 }} BTC</div> -->
             <q-input outlined v-model="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
-            <div v-if="showAddressError">Некорректный адрес BTC</div>
-            <div>Мы продаем 1 BTC за {{ bip_btc_sell_price | fullSAT}} BIP, за 1 BIP даем ~{{ bip_usd_buy_price | fullUSD}} USD</div>
-            <q-btn outline color="primary" label="Продать" @click.native="createContract"/>
+            <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
+            <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton"/>
             <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
             <div v-if="showGotPayment">
               Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
@@ -36,6 +35,7 @@
                 <tr><td>BTC</td>{{ bip_btc_buy_price | fullSAT}}</td><td>{{ bip_btc_sell_price | fullSAT}}<td>0.1</td></td>
                 <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
             </table>
+            <div>1 BIP = {{ bip_usd_buy_price | fullUSD}} USD</div>
             <div>В наличии на продажу BIP: 50000</div>
             <div>Курс BTC/USD: {{ btc_usd_rate }}</div>
           </div>
@@ -74,14 +74,11 @@
 </template>
 
 <script>
-const btc_rate_api = 'https://blockchain.info/ticker'
-
-const minterWallet = require('minterjs-wallet') 
-const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
-const bip_api_url = 'https://explorer-api.apps.minter.network/api/'
-
 const WAValidator = require('wallet-address-validator')
 
+const btc_rate_api = 'https://blockchain.info/ticker'
+const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
+const bip_api_url = 'https://explorer-api.apps.minter.network/api/'
 const back_url = 'http://localhost:3000/'
 
 const spread = 5 // % спрэда
@@ -91,11 +88,11 @@ export default {
     return {
       sell_amount: 1000,
       buy_amount: 0,
-      sell_token: 'BIP',
-      buy_token: 'BTC',
+      sell_coin: 'BIP',
+      buy_coin: 'BTC',
       dest_address: '',
-      sell_tokens_options: ['BIP', 'BTC', 'ETH'],
-      buy_tokens_options: ['BIP', 'BTC', 'ETH'],
+      sell_coins_options: ['BIP', 'BTC', 'ETH'],
+      buy_coins_options: ['BIP', 'BTC', 'ETH'],
       bip_usd_price: 0.0398,
       bip_sat_price_buy: 385,
       showSendToAddress: false,
@@ -107,7 +104,8 @@ export default {
       bip_received: 0,
       btc_to_send: 0,
       showAddressError: false,
-      contract: null
+      contract: null,
+      disableSendButton: true
     }
   },
   created(){
@@ -126,8 +124,8 @@ export default {
       console.log('create contract')
 
       const opts = {
-        sell_coin: "BIP",
-        buy_coin: "BTC",
+        sell_coin: this.sell_coin,
+        buy_coin: this.buy_coin,
         sell_amount: this.sell_amount,
         buy_amount: this.buy_amount * 100000000,
         toAddress: this.dest_address
@@ -239,8 +237,10 @@ export default {
       var valid = WAValidator.validate(address, 'BTC')
       if (valid) {
         this.showAddressError = false
+        this.disableSendButton = false
       } else {
         this.showAddressError = true
+        this.disableSendButton = true
       }
     }
   },
@@ -293,4 +293,7 @@ export default {
 </script>
 
 <style>
+error_message {
+  color: red;
+}
 </style>
