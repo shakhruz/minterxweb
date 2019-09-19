@@ -2,14 +2,39 @@
   <q-page class="flex">
     <q-card class="my-card q-pa-md q-ma-md">
       <q-card-section>
+        <div id="exhange_rates" class="q-pa-md" style="max-width: 300px">
+          <div class="q-gutter-md">
+            <!-- <h3>Обменные курсы</h3> -->
+            <table>
+                <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
+                <tr v-for="rate in allRates">
+                  <td>{{rate.coin}}</td>
+                  <td>{{rate.buy | fullSAT}}</td>
+                  <td>{{rate.sell | fullSAT}}<td>
+                  <td>{{rate.reserve}}</td>
+                </tr>
+            </table>
+            <!-- <div>1 BIP = {{ bip_usd_buy_price | fullUSD}} USD</div>
+            <div>1 BTC = {{ btc_usd_rate }} USD</div> -->
+            <!-- <div>В наличии на продажу BIP: 50000</div> -->
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+    <q-card class="my-card q-pa-md q-ma-md">
+      <q-card-section>
         <div class="q-pa-md" style="max-width: 300px">
           <div class="q-gutter-md">
-            <h3>BIP->BTC</h3>
-            <!-- <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="Продаю" @input="changeSellToken" disable="true"/> -->
-            <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP' />
+            <div>Заявка на обмен</div>
+            <div class="row">
+              <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP'/>
+              <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="Продаю" @input="changeSellToken"/>
+            </div>
             <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
-            <!-- <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken" disable="true"/> -->
-            <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
+            <div class="row">
+              <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
+              <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken"/>
+            </div>
             <!-- <div>В наличии на продажу: {{ 0.1 }} BTC</div> -->
             <q-input outlined v-model="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
             <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
@@ -23,28 +48,8 @@
           </div>
         </div>
       </q-card-section>
-    </q-card>
-  </div>
-    <q-card class="my-card q-pa-md q-ma-md">
       <q-card-section>
-        <div id="exhange_rates" class="q-pa-md" style="max-width: 300px">
-          <div class="q-gutter-md">
-            <h3>Обменные курсы</h3>
-            <table>
-                <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
-                <tr><td>BTC</td>{{ bip_btc_buy_price | fullSAT}}</td><td>{{ bip_btc_sell_price | fullSAT}}<td>0.1</td></td>
-                <tr><td>USDT</td><td>{{ (1 / bip_usd_sell_price) | fullUSD }}</td><td>{{ (1 / bip_usd_buy_price) | fullUSD }}</td><td>1000</td></tr>
-            </table>
-            <div>1 BIP = {{ bip_usd_buy_price | fullUSD}} USD</div>
-            <div>В наличии на продажу BIP: 50000</div>
-            <div>Курс BTC/USD: {{ btc_usd_rate }}</div>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-    <q-card class="my-card q-pa-md q-ma-md">
-      <q-card-section>
-        <div id="history" class="q-pa-md" style="max-width:300px">
+        <div id="history" class="q-pa-md">
           <div class="q-gutter-md">
             <h3>История операций</h3>
             <p>Кол-во операций всего/сегодня: 100/1</p>
@@ -61,9 +66,9 @@
                 <td>15.09 16:25</td>
                 <td>110 BIP</td>
                 <td></td>
-                <td>Покупка</td>
-                <td>Транзакция покупки</td>
-                <td>Статус</td>
+                <td></td>
+                <td></td>
+                <td></td>
               </tr>
             </table>
           </div>
@@ -105,7 +110,8 @@ export default {
       btc_to_send: 0,
       showAddressError: false,
       contract: null,
-      disableSendButton: true
+      disableSendButton: true,
+      allRates: []
     }
   },
   created(){
@@ -197,7 +203,14 @@ export default {
                 callback()
               }).catch(console.error)              
           }
-      })       
+      })
+      
+      fetch(back_url+'rates')
+        .then(res => res.json())
+        .then(json => {
+          console.log("rates: ", json)
+          this.allRates = json.rates
+      }).catch(console.error)            
     },
     checkRates(callback) {
       if (this.minter_market!=null  && this.rates !=null) {
@@ -293,6 +306,9 @@ export default {
 </script>
 
 <style>
+* {
+  font-size: 1.03em;
+}
 error_message {
   color: red;
 }
