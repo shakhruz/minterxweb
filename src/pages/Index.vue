@@ -36,7 +36,7 @@
               <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken"/>
             </div>
             <!-- <div>В наличии на продажу: {{ 0.1 }} BTC</div> -->
-            <q-input outlined v-model="dest_address" @input='validateAddress' label='Адрес отправки BTC' />
+            <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
             <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
             <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton"/>
             <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
@@ -166,10 +166,14 @@ export default {
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
-      if (arg=="BIP") this.buy_coins_options = this.filterBIP(this.allCoins)      
-      else {
-        this.buy_coins_options = this.allCoins     
+      if (arg=="BIP") {
+        this.buy_coins_options = this.filterBIP(this.allCoins)
+        this.sell_coins_options = this.allCoins
+        this.buy_coin = this.buy_coins_options[0]
+      } else {
+        this.buy_coins_options = ["BIP"]     
         this.buy_coin = "BIP"
+        this.sell_coins_options = this.allCoins
       }
     },
     changeBuyToken  (arg) {
@@ -178,6 +182,7 @@ export default {
       else {
         this.sell_coins_options = this.allCoins      
         this.sell_coin = "BIP"
+        this.buy_coins = this.filterBIP(this.allCoins)
       }
     },
     reverseTokens () {
@@ -270,13 +275,18 @@ export default {
       }, 1000)
     },
     validateAddress(address) {
-      var valid = WAValidator.validate(address, 'BTC')
-      if (valid) {
-        this.showAddressError = false
-        this.disableSendButton = false
+      if (buy_coin == "BTC") {
+        var valid = WAValidator.validate(address, 'BTC')
+        if (valid) {
+          this.showAddressError = false
+          this.disableSendButton = false
+        } else {
+          this.showAddressError = true
+          this.disableSendButton = true
+        }
       } else {
-        this.showAddressError = true
-        this.disableSendButton = true
+          this.showAddressError = false
+          this.disableSendButton = false
       }
     }
   },
