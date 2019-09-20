@@ -8,7 +8,7 @@
             <table>
                 <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
                 <tr v-for="rate in allRates" :key="rate.coin">
-                  <td ><strong>{{rate.coin }}</strong></td>
+                  <td><strong>{{rate.coin }}</strong></td>
                   <td>{{ formatAmount(rate.buy, "BIP") }}</td>
                   <td>{{ formatAmount(rate.sell, "BIP") }}</td>
                   <td>{{ formatAmount(rate.reserve, rate.coin) }}</td>
@@ -24,7 +24,7 @@
         <div id="history" class="q-pa-md">
           <div class="q-gutter-md">
             <h3>История операций</h3>
-            <p>Всего/сегодня: 100/1</p>
+            <p>Всего: {{completeContracts.length}}</p>
             <table>
               <thead>
                 <tr>
@@ -34,11 +34,11 @@
                   <td>Статус</td>
                 </tr>
               </thead>
-              <tr>
-                <td>15.09 16:25</td>
-                <td>1000 BIP</td>
-                <td>0.01002102 BTC</td>
-                <td>Завершена</td>
+              <tr v-for="co in completeContracts" :key="co._id">
+                <td>{{formatDate(co.date)}}</td>
+                <td>{{co.receivedCoins}} {{co.sell_coin}}</td>
+                <td>{{amount_to_send(co)}}</td>
+                <td>{{co.state}}</td>
               </tr>
             </table>
           </div>
@@ -117,12 +117,17 @@ export default {
       error_message: '',
       btc_usd: 0,
       bip_usd: 0,
+      allContracts: [],
+      dateOptions: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' } 
     }
   },
   created(){
     this.updateRates(()=>{
       console.log("rates ready...")
       this.updateSellAmount(1000)
+    })
+    this.getAllContracts(()=>{
+      console.log("contracts loaded...")
     })
   },
   mounted() {
@@ -328,6 +333,15 @@ export default {
       }).catch(console.error)    
       
     },
+    getAllContracts (callback) {
+      fetch(back_url+'contracts')
+        .then(res => res.json())
+        .then(json => {
+          this.allContracts = json
+          console.log("contracts: ", this.allContracts)
+          callback()
+      }).catch(console.error)  
+    },
     filterBIP(list) {
       return list.filter(item=>item!="BIP")
     },
@@ -353,9 +367,23 @@ export default {
           this.showAddressError = false
           this.disableSendButton = false
       }
+    },
+    amount_to_send(contract) {
+      if (contract.send_amount) {
+        return contract.send_amount + ' ' + contract.buy_coin
+      } else {
+        return '-'
+      }
+    },
+    formatDate(dateString) {
+      let d = new Date(dateString)
+      return d.toLocaleString("ru-RU", this.dateOptions)
     }
   },
   computed: {
+    completeContracts() {
+      return this.allContracts.filter(item => item.state == "completed")
+    }
     // bip_btc_buy_price() {
     //   if (this.minter_market!=null && this.rates != null) {
     //       const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
