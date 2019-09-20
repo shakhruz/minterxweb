@@ -15,8 +15,8 @@
                 </tr>
             </table>
             <div>*Курсы указаны в BIP токенах.<br/>
-                 1 BIP = {{ bip_usd_buy_price | fullUSD}} USD<br/>
-                 1 BTC = {{ btc_usd_rate }} USD</div>
+                 1 BIP = {{ bip_usd | fullUSD}} USD<br/>
+                 1 BTC = {{ btc_usd }} USD</div>
           </div>
         </div>
       </q-card-section>
@@ -45,7 +45,7 @@
         </div>
       </q-card-section>      
     </q-card>
-    <q-card class="my-card q-pa-md q-ma-md">
+    <q-card class="my-card q-pa-md q-ma-md" style="max-width: 600px; min-width: 600px"> 
       <q-card-section>
         <div class="q-pa-md">
           <div class="q-gutter-md">
@@ -59,20 +59,21 @@
               <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' :label="'Получу в ' + buy_coin" />
               <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="" @input="changeBuyToken"/>
             </div>
-            <!-- <div>В наличии на продажу: {{ 0.1 }} BTC</div> -->
             <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
             <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
             <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton"/>
           </div>
         </div>
       </q-card-section>
-      <q-card-section>
-        <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
-        <div v-if="showGotPayment">
-          Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
-          Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
+      <q-card-section style="max-width: 600px; min-width: 600px">
+        <div v-if="showSendToAddress" class="message">Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} на адрес: <strong>{{receivingAddress}}</strong> в течение 60 минут.</strong></div>
+        <div v-if="showGotPayment" class="message">
+          Перевод в размере <strong>{{ receivedCoins | BIPFormat}} BIP</strong> для обмена получен.<br/> 
+          Отправляем <strong>{{ coins_to_send }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
         </div>
-        <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>      
+        <div v-if="showPaymentSent" class="message">Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}. 
+          Сделка завершена. Проверить можно здесь - <a href='https://blockchain.info/tx/'{{ contract.outgoingTx }}>{{ contract.outgoingTx }}</a> . Спасибо за покупку!</div>      
+        <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>      
       </q-card-section>
     </q-card>
   </q-page>
@@ -95,8 +96,8 @@ export default {
       sell_coin: 'BIP',
       buy_coin: 'BTC',
       dest_address: '',
-      sell_coins_options: ['BIP', 'BTC', 'ETH'],
-      buy_coins_options: ['BIP', 'BTC', 'ETH'],
+      sell_coins_options: [],
+      buy_coins_options: [],
       bip_usd_price: 0,
       bip_sat_price_buy: 0,
       showSendToAddress: false,
@@ -104,18 +105,22 @@ export default {
       showPaymentSent: false,
       minter_market: null,
       rates: null,
-      bip_address: null,
-      bip_received: 0,
-      btc_to_send: 0,
+      receivingAddress: '',
+      receivedCoins: 0,
+      coins_to_send: 0,
       showAddressError: false,
       contract: null,
       disableSendButton: true,
       allRates: [],
-      allCoins: []
+      allCoins: [],
+      showErrorMessage: false,
+      error_message: '',
+      btc_usd: 0,
+      bip_usd: 0,
     }
   },
   created(){
-    this.checkRates(()=>{
+    this.updateRates(()=>{
       console.log("rates ready...")
       this.updateSellAmount(1000)
     })
@@ -150,15 +155,46 @@ export default {
         .catch(console.error)              
     },
     processContract() {
-      this.bip_address = this.contract.receivingAddress
-      console.log("new BIP address", this.bip_address)
+      this.receivingAddress = this.contract.receivingAddress
+      console.log("new BIP address", this.receivingAddress)
       this.showSendToAddress = true
-      this.waitForBIPpayment(this.bip_address, (trx, user_id) => {
-        console.log("got BIP payment: ", trx, user_id)
-        this.bip_received = trx.data.value * 1000
-        this.showGotPayment = true
-        this.btc_to_send = this.bip_received / this.bip_btc_buy_price * 100000000
-      })
+      let contractComplete = false
+      console.log("checking contract ", this.contract._id)
+      let tries = 60 * 60;
+      let interval = setInterval (() => {
+        this.getContractState(this.contract._id, (newContract) => {
+          this.contract = newContract
+          console.log("updated contract: ", this.contract)
+          switch (this.contract.state) {
+            case "sending":
+              this.receivedCoins = this.contract.receivedCoins
+              this.showGotPayment = true
+              break;
+            case "payment received":
+              this.receivedCoins = this.contract.receivedCoins
+              this.showGotPayment = true
+              break;
+            case "completed":
+              contractComplete = true
+              clearInterval(interval)
+              console.log("contract complete")
+              break;
+            case "error":
+              this.showErrorMessage = true
+              this.error_message = this.contract.message
+              clearInterval(interval)
+              console.log("contract complete")
+              break;
+            default: 
+              console.log("unknown contract state: ", this.contract.state)
+          }
+          tries -= 1
+          if (tries < 1) {
+            clearInterval(interval)
+            console.log("cancelled checking contract ", this.contract._id, " timed out")
+          }
+        })
+      }, 1000)
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
@@ -267,82 +303,41 @@ export default {
       }
       return amount
     },
-    updateRates (callback) {
-      fetch(`${minterApiUrl}v1/status`)
-      .then(res => res.json())
-      .then(json => {
-          console.log("market data: ", json)
-          if (json.data) {
-              this.minter_market = {bipPriceBtc: json.data.bipPriceBtc, 
-                            bipPriceUsd: json.data.bipPriceUsd, 
-                            bipPriceChange: json.data.bipPriceChange, 
-                            marketCap: json.data.marketCap} 
-
-              fetch(btc_rate_api)
-                .then(res => res.json())
-                .then(json => {
-                console.log("btc rate: ", json.USD.last)
-                this.rates = {
-                  btc_usd: json.USD.last
-                  // eth_usd: quote.data.ETH.quote.USD.price,
-                }
-                callback()
-              }).catch(console.error)              
-          }
-      })
-      
+    updateRates (callback) {    
       fetch(back_url+'rates')
         .then(res => res.json())
         .then(json => {
           console.log("rates: ", json)
           this.allRates = json.rates
+          fetch(back_url+'coins')
+            .then(res => res.json())
+            .then(json => {
+              console.log("coins: ", json)
+              this.allCoins = json.coins
+              this.sell_coins_options = this.allCoins
+              this.buy_coins_options = this.filterBIP(this.allCoins)
+              fetch(back_url+'usd_price')
+                .then(res => res.json())
+                .then(json => {
+                  console.log("usd_prices: ", json)
+                  this.btc_usd = json.btc_usd
+                  this.bip_usd = json.bip_usd
+                  callback()
+              }).catch(console.error)    
+          }).catch(console.error)        
       }).catch(console.error)    
       
-      fetch(back_url+'coins')
-        .then(res => res.json())
-        .then(json => {
-          console.log("coins: ", json)
-          this.allCoins = json.coins
-          this.sell_coins_options = this.allCoins
-          this.buy_coins_options = this.filterBIP(this.allCoins)
-      }).catch(console.error)        
     },
     filterBIP(list) {
       return list.filter(item=>item!="BIP")
     },
-    checkRates(callback) {
-      if (this.minter_market!=null  && this.rates !=null) {
-        callback()
-      } else {
-        this.updateRates(()=>{
-          callback()
-        })
-      }
-    },
-    waitForBIPpayment (address, callback, userId) {
-      console.log("waiting for a payment on address " + address + " userId: " + userId)
-      let tries = 60 * 60
-      let interval = setInterval(()=> {
-        console.log("checking trxs on address " + address)
-        fetch(`${minterApiUrl}v1/addresses/${address}/transactions`)
+    getContractState(contractId, callback) {
+      fetch(back_url+'contract/' + contractId)
         .then(res => res.json())
         .then(json => {
-            const data = json.data
-            if (data.length >0 ) {
-                console.log("есть транзакции: ", data.length)
-                for(let trx of data) {
-                  if (trx.data.coin == "BIP" && trx.data.to == this.bip_address) {
-                    console.log(`совпало: ${trx.data.value} ${trx.data.coin} fee: ${trx.fee} from: ${trx.from}  to ${trx.data.to}`)
-                    clearInterval(interval)
-                    callback(trx, userId)
-                  }
-                }
-            }
-        })
-    
-        tries -= 1
-        if (tries < 1) cancelInterval(interval)
-      }, 1000)
+          console.log("contract json: ", json)
+          callback(json)
+      }).catch(console.error)           
     },
     validateAddress(address) {
       if (this.buy_coin == "BTC") {
@@ -361,35 +356,35 @@ export default {
     }
   },
   computed: {
-    bip_btc_buy_price() {
-      if (this.minter_market!=null && this.rates != null) {
-          const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
-          return  price - price * (spread / 100)
-      }
-    },
-    bip_btc_sell_price() {
-      if (this.minter_market!=null && this.rates != null) {
-        const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
-        return  price + price * (spread / 100)
-      }
-    },
-    bip_usd_buy_price () {
-      if (this.minter_market!=null && this.rates != null) {
-          const price = this.minter_market.bipPriceUsd
-          return  price - price * (spread / 100)
-      }
-    },
-    bip_usd_sell_price () {
-      if (this.minter_market!=null && this.rates != null) {
-          const price = this.minter_market.bipPriceUsd
-          return  price + price * (spread / 100)
-      }
-    },
-    btc_usd_rate () {
-      if (this.minter_market!=null && this.rates != null) {
-        return this.rates.btc_usd
-      }
-    }
+    // bip_btc_buy_price() {
+    //   if (this.minter_market!=null && this.rates != null) {
+    //       const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
+    //       return  price - price * (spread / 100)
+    //   }
+    // },
+    // bip_btc_sell_price() {
+    //   if (this.minter_market!=null && this.rates != null) {
+    //     const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
+    //     return  price + price * (spread / 100)
+    //   }
+    // },
+    // bip_usd_buy_price () {
+    //   if (this.minter_market!=null && this.rates != null) {
+    //       const price = this.minter_market.bipPriceUsd
+    //       return  price - price * (spread / 100)
+    //   }
+    // },
+    // bip_usd_sell_price () {
+    //   if (this.minter_market!=null && this.rates != null) {
+    //       const price = this.minter_market.bipPriceUsd
+    //       return  price + price * (spread / 100)
+    //   }
+    // },
+    // btc_usd_rate () {
+    //   if (this.minter_market!=null && this.rates != null) {
+    //     return this.rates.btc_usd
+    //   }
+    // }
   },
   filters: {
     fullSAT(sat_amount) {
@@ -442,6 +437,14 @@ thead td {
 table {
   border: 0px solid grey;
   border-spacing: 0px;
+}
+
+.message {
+  margin: 10px 20px;
+}
+
+.error_message {
+  margin: 10px 20px;
 }
 
 </style>
