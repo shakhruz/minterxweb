@@ -30,7 +30,7 @@
               <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP'/>
               <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="Продаю" @input="changeSellToken"/>
             </div>
-            <!-- <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens" disabled/> -->
+            <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens"/>
             <div class="row">
               <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
               <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken"/>
@@ -187,6 +187,12 @@ export default {
     },
     reverseTokens () {
       console.log('reverse tokens')
+      const buy_coin = this.buy_coin
+      const buy_options = this.buy_coins_options
+      this.buy_coin = this.sell_coin
+      this.buy_coins_options = this.sell_coins_options
+      this.sell_coin = buy_coin
+      this.sell_coins_options = buy_options
     },
     updateSellAmount (arg) {
       console.log('updateSellAmount', arg)
