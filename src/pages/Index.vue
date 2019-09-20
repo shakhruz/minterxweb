@@ -7,7 +7,7 @@
             <!-- <h3>Обменные курсы</h3> -->
             <table>
                 <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
-                <tr v-for="rate in allRates">
+                <tr v-for="rate in allRates" :key="rate.coin">
                   <td>{{rate.coin}}</td>
                   <td>{{rate.buy | fullSAT}}</td>
                   <td>{{rate.sell | fullSAT}}<td>
@@ -111,7 +111,8 @@ export default {
       showAddressError: false,
       contract: null,
       disableSendButton: true,
-      allRates: []
+      allRates: [],
+      allCoins: []
     }
   },
   created(){
@@ -165,9 +166,19 @@ export default {
     },
     changeSellToken (arg) {
       console.log('change sell token', arg)
+      if (arg=="BIP") this.buy_coins_options = this.filterBIP(this.allCoins)      
+      else {
+        this.buy_coins_options = this.allCoins     
+        this.buy_coin = "BIP"
+      }
     },
     changeBuyToken  (arg) {
       console.log('change buy token', arg)
+      if (arg=="BIP") this.sell_coins_options = this.filterBIP(this.allCoins)      
+      else {
+        this.sell_coins_options = this.allCoins      
+        this.sell_coin = "BIP"
+      }
     },
     reverseTokens () {
       console.log('reverse tokens')
@@ -210,7 +221,19 @@ export default {
         .then(json => {
           console.log("rates: ", json)
           this.allRates = json.rates
-      }).catch(console.error)            
+      }).catch(console.error)    
+      
+      fetch(back_url+'coins')
+        .then(res => res.json())
+        .then(json => {
+          console.log("coins: ", json)
+          this.allCoins = json.coins
+          this.sell_coins_options = this.allCoins
+          this.buy_coins_options = this.filterBIP(this.allCoins)
+      }).catch(console.error)        
+    },
+    filterBIP(list) {
+      return list.filter(item=>item!="BIP")
     },
     checkRates(callback) {
       if (this.minter_market!=null  && this.rates !=null) {
@@ -311,5 +334,12 @@ export default {
 }
 error_message {
   color: red;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont,
+    “Segoe UI”, “Roboto”, “Oxygen”, “Ubuntu”, “Cantarell”,
+    “Fira Sans”, “Droid Sans”, “Helvetica Neue”,
+    sans-serif;
 }
 </style>
