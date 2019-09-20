@@ -86,8 +86,6 @@ const btc_rate_api = 'https://blockchain.info/ticker'
 const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
 const back_url = 'http://localhost:3000/'
 
-const spread = 5 // % спрэда
-
 export default {
   data () {
     return {
@@ -384,35 +382,6 @@ export default {
     completeContracts() {
       return this.allContracts.filter(item => item.state == "completed")
     }
-    // bip_btc_buy_price() {
-    //   if (this.minter_market!=null && this.rates != null) {
-    //       const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
-    //       return  price - price * (spread / 100)
-    //   }
-    // },
-    // bip_btc_sell_price() {
-    //   if (this.minter_market!=null && this.rates != null) {
-    //     const price = (this.rates.btc_usd / this.minter_market.bipPriceUsd)
-    //     return  price + price * (spread / 100)
-    //   }
-    // },
-    // bip_usd_buy_price () {
-    //   if (this.minter_market!=null && this.rates != null) {
-    //       const price = this.minter_market.bipPriceUsd
-    //       return  price - price * (spread / 100)
-    //   }
-    // },
-    // bip_usd_sell_price () {
-    //   if (this.minter_market!=null && this.rates != null) {
-    //       const price = this.minter_market.bipPriceUsd
-    //       return  price + price * (spread / 100)
-    //   }
-    // },
-    // btc_usd_rate () {
-    //   if (this.minter_market!=null && this.rates != null) {
-    //     return this.rates.btc_usd
-    //   }
-    // }
   },
   filters: {
     fullSAT(sat_amount) {
