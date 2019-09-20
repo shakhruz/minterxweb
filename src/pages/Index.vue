@@ -11,7 +11,7 @@
                   <td><strong>{{rate.coin }}</strong></td>
                   <td>{{ formatAmount(rate.buy, "BIP") }}</td>
                   <td>{{ formatAmount(rate.sell, "BIP") }}</td>
-                  <td>{{ formatAmount(rate.reserve, rate.coin) }}</td>
+                  <td>{{ formatSendingAmount(rate.reserve, rate.coin) }}</td>
                 </tr>
             </table>
             <div>*Курсы указаны в BIP токенах.<br/>
@@ -68,11 +68,15 @@
       <q-card-section style="max-width: 600px; min-width: 600px">
         <div v-if="showSendToAddress" class="message">Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} на адрес: <strong>{{receivingAddress}}</strong> в течение 60 минут.</strong></div>
         <div v-if="showGotPayment" class="message">
-          Перевод в размере <strong>{{ receivedCoins | BIPFormat}} BIP</strong> для обмена получен.<br/> 
-          Отправляем <strong>{{ coins_to_send }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
+          Перевод в размере <strong>{{ formatSendingAmount(receivedCoins, sell_coin) }}</strong> для обмена получен.<br/> 
+          Отправляем <strong>{{ contract.send_amount }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
         </div>
-        <div v-if="showPaymentSent" class="message">Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}. 
-          Сделка завершена. Проверить можно здесь - <a href='https://blockchain.info/tx/'{{ contract.outgoingTx }}>{{ contract.outgoingTx }}</a> . Спасибо за покупку!</div>      
+        <div v-if="showPaymentSent" class="message">
+          Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}.<br/> 
+          Сделка завершена. <br/>
+          Проверить можно здесь - <a _target="blank" v-bind:href="''+ contract.outgoingTx +''">{{ contract.outgoingTx }}</a><br/>
+          Спасибо за покупку!
+        </div>      
         <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>      
       </q-card-section>
     </q-card>
@@ -141,6 +145,7 @@ export default {
       this.receivedCoins = 0
       this.showGotPayment = false
       this.disableSendButton = true
+      this.showPaymentSent = false
 
       const opts = {
         sell_coin: this.sell_coin,
@@ -176,6 +181,9 @@ export default {
           this.contract = newContract
           console.log("updated contract: ", this.contract)
           switch (this.contract.state) {
+            case "waiting for payment":
+              console.log("waiting for payment...")
+              break;
             case "sending":
               this.receivedCoins = this.contract.receivedCoins
               this.showGotPayment = true
@@ -185,7 +193,9 @@ export default {
               this.showGotPayment = true
               break;
             case "completed":
+              this.showGotPayment = true
               contractComplete = true
+              this.showPaymentSent = true
               this.disableSendButton = false
               clearInterval(interval)
               console.log("contract complete")
@@ -316,6 +326,20 @@ export default {
       }
       return amount
     },
+    formatSendingAmount(amount, coin) {
+      if (coin == "BIP") {
+        amount = Number(Math.trunc(amount * 10000)/10000) + ' ' + coin
+      } else {
+        if (coin == "BTC") {
+          amount = amount + 'sat (' + Number((amount / 100000000).toFixed(8)) + ') BTC'
+        } else {
+          if (coin=="USDT") {
+            amount = Number(amount.toFixed(4)) + ' USDT'
+          }
+        }
+      }
+      return amount
+    },    
     updateRates (callback) {    
       fetch(back_url+'rates')
         .then(res => res.json())
