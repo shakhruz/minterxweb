@@ -4,19 +4,19 @@
       <q-card-section>
         <div id="exhange_rates" class="q-pa-md">
           <div class="q-gutter-md">
-            <!-- <h3>Обменные курсы</h3> -->
+            <h3>Курсы Валют*</h3>
             <table>
                 <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
                 <tr v-for="rate in allRates" :key="rate.coin">
-                  <td>{{rate.coin}}</td>
-                  <td>{{rate.buy | fullSAT}}</td>
-                  <td>{{rate.sell | fullSAT}}</td>
-                  <td>{{rate.reserve}}</td>
+                  <td ><strong>{{rate.coin }}</strong></td>
+                  <td>{{ formatAmount(rate.buy, "BIP") }}</td>
+                  <td>{{ formatAmount(rate.sell, "BIP") }}</td>
+                  <td>{{ formatAmount(rate.reserve, rate.coin) }}</td>
                 </tr>
             </table>
-            <!-- <div>1 BIP = {{ bip_usd_buy_price | fullUSD}} USD</div>
-            <div>1 BTC = {{ btc_usd_rate }} USD</div> -->
-            <!-- <div>В наличии на продажу BIP: 50000</div> -->
+            <div>*Курсы указаны в BIP токенах.<br/>
+                 1 BIP = {{ bip_usd_buy_price | fullUSD}} USD<br/>
+                 1 BTC = {{ btc_usd_rate }} USD</div>
           </div>
         </div>
       </q-card-section>
@@ -26,12 +26,14 @@
             <h3>История операций</h3>
             <p>Всего/сегодня: 100/1</p>
             <table>
-              <tr>
-                <td>Время</td>
-                <td>Продажа</td>
-                <td>Покупка</td>
-                <td>Статус</td>
-              </tr>
+              <thead>
+                <tr>
+                  <td>Время</td>
+                  <td>Продажа</td>
+                  <td>Покупка</td>
+                  <td>Статус</td>
+                </tr>
+              </thead>
               <tr>
                 <td>15.09 16:25</td>
                 <td>1000 BIP</td>
@@ -115,13 +117,11 @@ export default {
   created(){
     this.checkRates(()=>{
       console.log("rates ready...")
+      this.updateSellAmount(1000)
     })
   },
   mounted() {
     console.log("mounted...")
-    setTimeout(()=>{
-      this.updateSellAmount(1000)
-    }, 2000)
   },
   methods: {
     createContract () {
@@ -131,13 +131,12 @@ export default {
         sell_coin: this.sell_coin,
         buy_coin: this.buy_coin,
         sell_amount: this.sell_amount,
-        buy_amount: this.buy_amount * 100000000,
+        buy_amount: this.buy_amount,
         toAddress: this.dest_address
       }
 
       fetch(back_url + 'contracts', {
         method: 'POST',
-        // mode: 'no-cors',
         body: JSON.stringify(opts),
         headers: {
             'Content-Type': 'application/json'
@@ -174,7 +173,7 @@ export default {
       }
       this.updateSellAmount(this.sell_amount)
     },
-    changeBuyToken  (arg) {
+    changeBuyToken (arg) {
       console.log('change buy token', arg)
       if (arg=="BIP") this.sell_coins_options = this.filterBIP(this.allCoins)      
       else {
@@ -412,6 +411,9 @@ export default {
 <style>
 * {
   font-size: 1.03em;
+  box-sizing: border-box;
+  margin: 0 0;
+  padding: 0 0;
 }
 
 .error_message {
@@ -427,7 +429,19 @@ body {
 }
 
 td {
+  border: 1px solid grey;
   text-align: left;
+  padding: 5px 5px;
+  margin: 0px 0px;
+}
+
+thead td {
+  text-align: center;
+}
+
+table {
+  border: 0px solid grey;
+  border-spacing: 0px;
 }
 
 </style>

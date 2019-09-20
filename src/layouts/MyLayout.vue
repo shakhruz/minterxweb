@@ -3,7 +3,7 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title class="absolute-center">
-          MinterX
+          MinterXchange - обмен BIP токенов на популярные криптовалюты
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
