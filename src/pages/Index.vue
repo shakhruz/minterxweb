@@ -61,7 +61,7 @@
             </div>
             <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
             <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
-            <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton"/>
+            <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton || invalidAddress"/>
           </div>
         </div>
       </q-card-section>
@@ -108,7 +108,7 @@ export default {
       coins_to_send: 0,
       showAddressError: false,
       contract: null,
-      disableSendButton: true,
+      disableSendButton: false,
       allRates: [],
       allCoins: [],
       showErrorMessage: false,
@@ -116,7 +116,8 @@ export default {
       btc_usd: 0,
       bip_usd: 0,
       allContracts: [],
-      dateOptions: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' } 
+      dateOptions: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' },
+      invalidAddress: true
     }
   },
   created(){
@@ -134,6 +135,12 @@ export default {
   methods: {
     createContract () {
       console.log('create contract')
+      this.showErrorMessage = false
+      this.error_message = ''
+      this.showSendToAddress = false
+      this.receivedCoins = 0
+      this.showGotPayment = false
+      this.disableSendButton = true
 
       const opts = {
         sell_coin: this.sell_coin,
@@ -179,12 +186,14 @@ export default {
               break;
             case "completed":
               contractComplete = true
+              this.disableSendButton = false
               clearInterval(interval)
               console.log("contract complete")
               break;
             case "error":
               this.showErrorMessage = true
               this.error_message = this.contract.message
+              this.disableSendButton = false
               clearInterval(interval)
               console.log("contract complete")
               break;
@@ -194,6 +203,7 @@ export default {
           tries -= 1
           if (tries < 1) {
             clearInterval(interval)
+            this.disableSendButton = false
             console.log("cancelled checking contract ", this.contract._id, " timed out")
           }
         })
@@ -356,14 +366,14 @@ export default {
         var valid = WAValidator.validate(address, 'BTC')
         if (valid) {
           this.showAddressError = false
-          this.disableSendButton = false
+          this.invalidAddress = false
         } else {
           this.showAddressError = true
-          this.disableSendButton = true
+          this.invalidAddress = true
         }
       } else {
           this.showAddressError = false
-          this.disableSendButton = false
+          this.invalidAddress = false
       }
     },
     amount_to_send(contract) {
