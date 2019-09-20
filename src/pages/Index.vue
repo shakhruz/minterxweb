@@ -2,7 +2,7 @@
   <q-page class="flex">
     <q-card class="my-card q-pa-md q-ma-md">
       <q-card-section>
-        <div id="exhange_rates" class="q-pa-md" style="max-width: 300px">
+        <div id="exhange_rates" class="q-pa-md">
           <div class="q-gutter-md">
             <!-- <h3>Обменные курсы</h3> -->
             <table>
@@ -10,7 +10,7 @@
                 <tr v-for="rate in allRates" :key="rate.coin">
                   <td>{{rate.coin}}</td>
                   <td>{{rate.buy | fullSAT}}</td>
-                  <td>{{rate.sell | fullSAT}}<td>
+                  <td>{{rate.sell | fullSAT}}</td>
                   <td>{{rate.reserve}}</td>
                 </tr>
             </table>
@@ -20,59 +20,57 @@
           </div>
         </div>
       </q-card-section>
+      <q-card-section>
+        <div id="history" class="q-pa-md">
+          <div class="q-gutter-md">
+            <h3>История операций</h3>
+            <p>Всего/сегодня: 100/1</p>
+            <table>
+              <tr>
+                <td>Время</td>
+                <td>Продажа</td>
+                <td>Покупка</td>
+                <td>Статус</td>
+              </tr>
+              <tr>
+                <td>15.09 16:25</td>
+                <td>1000 BIP</td>
+                <td>0.01002102 BTC</td>
+                <td>Завершена</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </q-card-section>      
     </q-card>
     <q-card class="my-card q-pa-md q-ma-md">
       <q-card-section>
-        <div class="q-pa-md" style="max-width: 300px">
+        <div class="q-pa-md">
           <div class="q-gutter-md">
             <div>Заявка на обмен</div>
             <div class="row">
-              <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' label='Продаю в BIP'/>
-              <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="Продаю" @input="changeSellToken"/>
+              <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' :label="'Продаю в ' + sell_coin"/>
+              <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="" @input="changeSellToken"/>
             </div>
             <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens"/>
             <div class="row">
-              <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' label='Получу в BTC' />
-              <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="Покупаю" @input="changeBuyToken"/>
+              <q-input outlined v-model.number="buy_amount" @input='updateBuyAmount' :label="'Получу в ' + buy_coin" />
+              <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="" @input="changeBuyToken"/>
             </div>
             <!-- <div>В наличии на продажу: {{ 0.1 }} BTC</div> -->
             <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
             <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
             <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton"/>
-            <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
-            <div v-if="showGotPayment">
-              Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
-              Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
-            </div>
-            <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>
           </div>
         </div>
       </q-card-section>
       <q-card-section>
-        <div id="history" class="q-pa-md">
-          <div class="q-gutter-md">
-            <h3>История операций</h3>
-            <p>Кол-во операций всего/сегодня: 100/1</p>
-            <table>
-              <tr>
-                <td>Время</td>
-                <td>Продажа</td>
-                <td>Транзакция продажи</td>
-                <td>Покупка</td>
-                <td>Транзакция покупки</td>
-                <td>Статус</td>
-              </tr>
-              <tr>
-                <td>15.09 16:25</td>
-                <td>110 BIP</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </table>
-          </div>
+        <div v-if="showSendToAddress">Отправьте BIP токены на адрес: {{bip_address}}</div>
+        <div v-if="showGotPayment">
+          Перевод в размере {{ bip_received | BIPFormat}} BIP для обмена получен. 
+          Отправляем {{ btc_to_send | fullSAT}}sat ({{btc_to_send | satToBTC}}btc) на адрес {{dest_address}} 
         </div>
+        <div v-if="showPaymentSent">Купленные 0.1btc отправлены на адрес XXX. Сделка завершена</div>      
       </q-card-section>
     </q-card>
   </q-page>
@@ -83,7 +81,6 @@ const WAValidator = require('wallet-address-validator')
 
 const btc_rate_api = 'https://blockchain.info/ticker'
 const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
-const bip_api_url = 'https://explorer-api.apps.minter.network/api/'
 const back_url = 'http://localhost:3000/'
 
 const spread = 5 // % спрэда
@@ -98,8 +95,8 @@ export default {
       dest_address: '',
       sell_coins_options: ['BIP', 'BTC', 'ETH'],
       buy_coins_options: ['BIP', 'BTC', 'ETH'],
-      bip_usd_price: 0.0398,
-      bip_sat_price_buy: 385,
+      bip_usd_price: 0,
+      bip_sat_price_buy: 0,
       showSendToAddress: false,
       showGotPayment: false,
       showPaymentSent: false,
@@ -175,6 +172,7 @@ export default {
         this.buy_coin = "BIP"
         this.sell_coins_options = this.allCoins
       }
+      this.updateSellAmount(this.sell_amount)
     },
     changeBuyToken  (arg) {
       console.log('change buy token', arg)
@@ -184,6 +182,8 @@ export default {
         this.sell_coin = "BIP"
         this.buy_coins = this.filterBIP(this.allCoins)
       }
+      this.validateAddress(this.dest_address)
+      this.updateSellAmount(this.sell_amount)
     },
     reverseTokens () {
       console.log('reverse tokens')
@@ -193,15 +193,80 @@ export default {
       this.buy_coins_options = this.sell_coins_options
       this.sell_coin = buy_coin
       this.sell_coins_options = buy_options
+      this.validateAddress(this.dest_address)
+      this.updateSellAmount(this.sell_amount)
     },
     updateSellAmount (arg) {
       console.log('updateSellAmount', arg)
-      this.buy_amount = Number((this.sell_amount / this.bip_btc_buy_price).toFixed(8))
+      if (this.sell_coin == "BIP") {
+        // продаем BIP
+        if (this.allRates) {
+          const rate = this.allRates.find(item=>item.coin == this.buy_coin)
+          console.log("rate: ", rate)
+          if (rate) {
+            const buy_price = rate.sell
+            this.buy_amount = this.sell_amount / buy_price
+            console.log("buy amount: ", this.buy_amount, "buy price: ", buy_price)
+          }
+        }
+      } else {
+        if (this.buy_coin == "BIP") {
+          // покупаем BIP
+          if (this.allRates) {
+            const rate = this.allRates.find(item=>item.coin == this.sell_coin)
+            console.log("rate: ", rate)
+            if (rate) {
+              const buy_price = rate.buy
+              this.buy_amount = this.sell_amount * buy_price
+              console.log("buy amount: ", this.buy_amount, "buy price: ", buy_price)
+            }
+          }
+        } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
+      }
+      this.buy_amount = this.formatAmount(this.buy_amount, this.buy_coin)
     },
     updateBuyAmount (arg) {
       console.log('update buy amount', arg)
-      this.sell_amount = Math.trunc(this.buy_amount * this.bip_btc_sell_price)
-      // this.sell_amount = this.buy_amount * this.
+      if (this.sell_coin == "BIP") {
+        // продаем BIP
+        if (this.allRates) {
+          const rate = this.allRates.find(item=>item.coin == this.buy_coin)
+          console.log("rate: ", rate)
+          if (rate) {
+            const buy_price = rate.sell
+            this.sell_amount = this.buy_amount * buy_price
+            console.log("sell amount: ", this.sell_amount, "buy price: ", buy_price)
+          }
+        }
+      } else {
+        if (this.buy_coin == "BIP") {
+          // покупаем BIP
+          if (this.allRates) {
+            const rate = this.allRates.find(item=>item.coin == this.sell_coin)
+            console.log("rate: ", rate)
+            if (rate) {
+              const buy_price = rate.buy
+              this.sell_amount = this.buy_amount / buy_price
+              console.log("sell amount: ", this.sell_amount, "buy price: ", buy_price)
+            }
+          }
+        } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
+      }
+      this.sell_amount = this.formatAmount(this.sell_amount, this.sell_coin)
+    },
+    formatAmount(amount, coin) {
+      if (coin == "BIP") {
+        amount = Number(Math.trunc(amount * 10000)/10000)
+      } else {
+        if (coin == "BTC") {
+          amount = Number(amount.toFixed(8))
+        } else {
+          if (coin=="USDT") {
+            amount = Number(amount.toFixed(4))
+          }
+        }
+      }
+      return amount
     },
     updateRates (callback) {
       fetch(`${minterApiUrl}v1/status`)
@@ -260,7 +325,7 @@ export default {
       let tries = 60 * 60
       let interval = setInterval(()=> {
         console.log("checking trxs on address " + address)
-        fetch(`${bip_api_url}v1/addresses/${address}/transactions`)
+        fetch(`${minterApiUrl}v1/addresses/${address}/transactions`)
         .then(res => res.json())
         .then(json => {
             const data = json.data
@@ -281,7 +346,7 @@ export default {
       }, 1000)
     },
     validateAddress(address) {
-      if (buy_coin == "BTC") {
+      if (this.buy_coin == "BTC") {
         var valid = WAValidator.validate(address, 'BTC')
         if (valid) {
           this.showAddressError = false
@@ -348,14 +413,21 @@ export default {
 * {
   font-size: 1.03em;
 }
-error_message {
+
+.error_message {
   color: red;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont,
+  /* font-family: -apple-system, BlinkMacSystemFont,
     “Segoe UI”, “Roboto”, “Oxygen”, “Ubuntu”, “Cantarell”,
     “Fira Sans”, “Droid Sans”, “Helvetica Neue”,
-    sans-serif;
+    sans-serif; */
+  font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
 }
+
+td {
+  text-align: left;
+}
+
 </style>
