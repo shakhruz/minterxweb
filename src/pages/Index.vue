@@ -88,7 +88,7 @@ const WAValidator = require('wallet-address-validator')
 
 const btc_rate_api = 'https://blockchain.info/ticker'
 const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
-const back_url = 'http://localhost:3000/'
+const back_url = 'http://162.213.255.184:3000/'
 
 export default {
   data () {
