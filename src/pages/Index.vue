@@ -16,8 +16,8 @@
               </span> -->
             </div> 
             <div class="dashboard__period-title">
-              1 BTC = {{ btc_usd }}usd<br/>
-              1000 satoshi = {{ (btc_usd / 100000)  | fullUSD }}usd
+              1 BTC = ${{ btc_usd }}<br/>
+              1000 satoshi = ${{ (btc_usd / 100000)  | fullUSD }}
             </div> 
             <!-- <div class="dashboard__period-description">12 min 30 sec</div> -->
           </div>
@@ -41,9 +41,9 @@
                         <li>
                           <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
                         </li>
-                        <li>
+                        <!-- <li>
                           <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
-                        </li>
+                        </li> -->
                       </ul>
                     </div>
                   </div>
@@ -71,7 +71,7 @@
               <form novalidate="novalidate" class="dashboard__well" _lpchecked="1">
                 <div class="form-row">
                   <label class="form-field form-field--invert">
-                    <q-input color="lime-11" dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress'>
+                    <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress'>
                     </q-input>
                     <!-- <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div> -->
                     <!-- <input type="text" spellcheck="false" autocomplete="off" class="form-field__input">  -->
@@ -90,7 +90,7 @@
                 </div> 
                 <div class="form-row">
                   <button class="button button--main button--full">
-                    <span class="button__content">Оплатить в Bitcoin</span> 
+                    <span class="button__content">Оплатить в BITCOIN</span> 
                   </button>
                 </div> 
                 <div class="form-row">

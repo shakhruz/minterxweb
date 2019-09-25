@@ -638,7 +638,7 @@ footer {
 }
 
 .footer__menu-item {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 700;
     display: inline-block;
 }
@@ -680,6 +680,7 @@ footer {
 .footer__menu-item::after {
     content: ' | ';
     margin: 0 3px;
+    font-size: 1.4em;
 }
 
 .price_info {
