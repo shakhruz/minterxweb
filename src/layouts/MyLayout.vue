@@ -97,7 +97,7 @@ body {
   flex-direction: column;
   min-height: 100vh;
   position: relative;
-  /* background: url(/statics/bg1.svg) 50% 0 no-repeat; */
+  background: url(/statics/main-bg.svg) 50% 0 no-repeat;
 }
 
 @media (min-width: 450px) {
@@ -408,7 +408,8 @@ form {
 }
 
 .dashboard__well {
-    border: 2px solid #41249e;
+    /* border: 2px solid #41249e; */
+    border: 2px solid #585858;
     border-radius: 16px;
     padding: 16px;
     background: #200f4e;
@@ -481,7 +482,7 @@ input, select, textarea {
     color: inherit;
     background: 0 0;
     border: none;
-    border-bottom: 2px solid #a1a3a4;
+    /* border-bottom: 2px solid #a1a3a4; */
     -webkit-transition: .15s;
     transition: .15s;
     display: block;
@@ -646,7 +647,8 @@ footer {
     text-transform: uppercase;
     font: inherit;
     font-weight: 700;
-    font-size: 14px;
+    /* font-size: 14px; */
+    font-size: 1.1em;
     letter-spacing: .4px;
 }
 
@@ -656,6 +658,10 @@ footer {
     font-weight: 900;
     line-height: 1.1;
     vertical-align: middle;
+}
+
+.dashboard__period-title {
+  font-size: 1.1em;
 }
 
 .dashboard__price-change {
@@ -674,6 +680,14 @@ footer {
 .footer__menu-item::after {
     content: ' | ';
     margin: 0 3px;
+}
+
+.price_info {
+  font-size: 1.4em;
+}
+
+.q-field__native {
+  padding-bottom: 22px;
 }
 
 </style>

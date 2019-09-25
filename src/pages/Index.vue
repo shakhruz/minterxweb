@@ -15,9 +15,10 @@
                 -30.03%
               </span> -->
             </div> 
-            <!-- <div class="dashboard__period-title">
-              Price is valid for the next:
-            </div>  -->
+            <div class="dashboard__period-title">
+              1 BTC = {{ btc_usd }}usd<br/>
+              1000 satoshi = {{ (btc_usd / 100000)  | fullUSD }}usd
+            </div> 
             <!-- <div class="dashboard__period-description">12 min 30 sec</div> -->
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
@@ -26,10 +27,25 @@
                 <div class="chartjs-size-monitor-expand">
                   <div class="">
                     <span>Купить</span>
-                    <q-input class="dashboard__price-value" v-model.number="sell_amount" @input='updateSellAmount'/>
-                    <span>BIP ({{ sell_amount * bip_usd | fullUSD }}usd)</span>
-                    <div style="margin-top: 20px">Будет стоить:</div>
-                    <div class="">{{ buy_amount_btc | formatBTC }}</div>
+                    <q-input dark class="dashboard__price-value" v-model.number="sell_amount" @input='updateSellAmount'>
+                      <template v-slot:prepend>
+                          <img src="/statics/bip_token_small.png" width="40" height="40">
+                        <!-- <q-avatar>
+                        </q-avatar>                       -->
+                      </template>
+                    </q-input>
+                    <span>~${{ sell_amount * bip_usd | fullUSD }}</span>
+                    <div class="price_info">
+                      <div style="margin-top: 20px">Будет стоить:</div>
+                      <ul>
+                        <li>
+                          <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
+                        </li>
+                        <li>
+                          <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
                 <div class="chartjs-size-monitor-shrink">
@@ -37,11 +53,6 @@
                   </div>
                 </div>
               </div>
-              <!-- <canvas data-history-chart="" class="history__chart chartjs-render-monitor" style="display: block; width: 442px; height: 160px;" height="160" width="442">
-              </canvas> 
-              <div class="history__chart-label-x">Hours</div>
-              <div id="chartjs-tooltip" style="position: absolute; top: 6px; bottom: 28px; width: 1px; background: rgb(71, 174, 100); pointer-events: none; opacity: 0; left: 423.988px;">
-              </div> -->
             </div>
           </div>
         </div>
@@ -59,15 +70,16 @@
             <div class="u-cell u-cell--medium--6-10">
               <form novalidate="novalidate" class="dashboard__well" _lpchecked="1">
                 <div class="form-row">
-                  <label class="form-field form-field--invert is-error">
-                    <q-input v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress' />
-                    <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
+                  <label class="form-field form-field--invert">
+                    <q-input color="lime-11" dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress'>
+                    </q-input>
+                    <!-- <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div> -->
                     <!-- <input type="text" spellcheck="false" autocomplete="off" class="form-field__input">  -->
                     <span class="form-field__label">Адрес Вашего Minter кошелька 
                       <span class="dashboard__input-address-extra">(начинается с Mx)</span>
                     </span>
                   </label> 
-                  <span class="form-field__error">Введите Ваш адрес</span>
+                  <span v-if="showAddressError" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
                   <!-- <label class="form-field is-error">
@@ -77,7 +89,7 @@
                   <span class="form-field__error">Enter your e-mail</span> -->
                 </div> 
                 <div class="form-row">
-                  <button class="button button--main button--full is-disabled">
+                  <button class="button button--main button--full">
                     <span class="button__content">Оплатить в Bitcoin</span> 
                   </button>
                 </div> 
