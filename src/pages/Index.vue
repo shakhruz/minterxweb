@@ -107,7 +107,8 @@
                   </q-input>
                 </div> 
                 <div class="form-row" style="text-align: center">
-                  <qriously foreground="white" :value="contract.receivingAddress" :size="200" />
+                  <qriously background="#ffffff" foreground="black" backgroundAlpha="0" 
+                  :value="'bitcoin:' + contract.receivingAddress + '?amount=' + buy_amount_btc" :size="200" />
                 </div>
               </form>
             </div>
