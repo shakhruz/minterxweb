@@ -61,7 +61,7 @@
                       <span class="dashboard__input-address-extra">(начинается с Mx)</span>
                     </span>
                   </label> 
-                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress' />
+                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateMinterAddress' />
                   <span v-if="showAddressError" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
@@ -166,11 +166,11 @@
       </div>
       <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
       <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
-      <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendButton || invalidAddress"/>
+      <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendBtcButton || invalidAddress"/>
     </div>
     <div v-if="showSendToAddress" class="message">Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} на адрес: <strong>{{receivingAddress}}</strong> в течение 60 минут.</strong></div>
     <div v-if="showGotPayment" class="message">
-      Перевод в размере <strong>{{ formatSendingAmount(receivedCoins, sell_coin) }}</strong> для обмена получен.<br/> 
+      Перевод в размере <strong>{{ formatSendingAmount(contract.receivedCoins, sell_coin) }}</strong> для обмена получен.<br/> 
       Отправляем <strong>{{ contract.send_amount }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
     </div>
     <div v-if="showPaymentSent" class="message">
@@ -187,6 +187,7 @@ const WAValidator = require('wallet-address-validator')
 
 const btc_rate_api = 'https://blockchain.info/ticker'
 const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
+
 // const back_url = 'http://162.213.255.184:3333/'
 const back_url = 'http://localhost:3333/'
 
@@ -197,41 +198,41 @@ function formatLongNumber(long_number) {
 export default {
   data () {
     return {
+      // данные кулькулятора
       sell_amount: 100,
       buy_amount_btc: 0,
       sell_coin: 'BIP',
       buy_coin: 'BTC',
       dest_address: '',
-      sell_coins_options: [],
-      buy_coins_options: [],
-      bip_usd_price: 0,
-      bip_sat_price_buy: 0,
+
+      showAddressError: false,
+      invalidAddress: true,
+      disableSendBtcButton: false,
+
+      // цены и курсы
+      btc_usd: 0,
+      bip_usd: 0,
+      rates: null,
+      allRates: [],
+
+      // данные шага 2, состояние текущей сделки
+      receivingAddress: '',
+      contract: null,
+
       showSendToAddress: false,
       showGotPayment: false,
       showPaymentSent: false,
-      minter_market: null,
-      rates: null,
-      receivingAddress: '',
-      receivedCoins: 0,
-      coins_to_send: 0,
-      showAddressError: false,
-      contract: null,
-      disableSendButton: false,
-      allRates: [],
-      allCoins: [],
       showErrorMessage: false,
       error_message: '',
-      btc_usd: 0,
-      bip_usd: 0,
-      allContracts: [],
+
+      allContracts: [], // история контрактов
       dateOptions: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' },
-      invalidAddress: true
     }
   },
   created(){
     this.updateRates(()=>{
       console.log("rates ready...")
-      this.updateSellAmount(1000)
+      this.updateSellAmount(this.sell_amount)
     })
     this.getAllContracts(()=>{
       console.log("contracts loaded...")
@@ -241,15 +242,19 @@ export default {
     console.log("mounted...")
   },
   methods: {
-    createContract () {
-      console.log('create contract')
+    // обнулить состояние формы зяавки
+    resetFormData() {
+      this.disableSendBtcButton = true
       this.showErrorMessage = false
       this.error_message = ''
       this.showSendToAddress = false
-      this.receivedCoins = 0
       this.showGotPayment = false
-      this.disableSendButton = true
       this.showPaymentSent = false
+    },
+    // Создаем новый контракт в базе данных
+    createContract () {
+      console.log('create contract')
+      this.resetFormData()
 
       const opts = {
         sell_coin: this.sell_coin,
@@ -273,13 +278,16 @@ export default {
         })
         .catch(console.error)              
     },
+    // Отслеживаем контракт, ждем оплату, следим за отправкой купленных токенов
     processContract() {
       this.receivingAddress = this.contract.receivingAddress
       console.log("new BIP address", this.receivingAddress)
+
       this.showSendToAddress = true
       let contractComplete = false
       console.log("checking contract ", this.contract._id)
-      let tries = 60 * 60;
+
+      let tries = 60 * 60; // даем 60 минут на завершение контракта
       let interval = setInterval (() => {
         this.getContractState(this.contract._id, (newContract) => {
           this.contract = newContract
@@ -289,25 +297,23 @@ export default {
               console.log("waiting for payment...")
               break;
             case "sending":
-              this.receivedCoins = this.contract.receivedCoins
               this.showGotPayment = true
               break;
             case "payment received":
-              this.receivedCoins = this.contract.receivedCoins
               this.showGotPayment = true
               break;
             case "completed":
               this.showGotPayment = true
               contractComplete = true
               this.showPaymentSent = true
-              this.disableSendButton = false
+              this.disableSendBtcButton = false
               clearInterval(interval)
               console.log("contract complete")
               break;
             case "error":
               this.showErrorMessage = true
               this.error_message = this.contract.message
-              this.disableSendButton = false
+              this.disableSendBtcButton = false
               clearInterval(interval)
               console.log("contract complete")
               break;
@@ -317,47 +323,13 @@ export default {
           tries -= 1
           if (tries < 1) {
             clearInterval(interval)
-            this.disableSendButton = false
+            this.disableSendBtcButton = false
             console.log("cancelled checking contract ", this.contract._id, " timed out")
           }
         })
       }, 1000)
     },
-    changeSellToken (arg) {
-      console.log('change sell token', arg)
-      if (arg=="BIP") {
-        this.buy_coins_options = this.filterBIP(this.allCoins)
-        this.sell_coins_options = this.allCoins
-        this.buy_coin = this.buy_coins_options[0]
-      } else {
-        this.buy_coins_options = ["BIP"]     
-        this.buy_coin = "BIP"
-        this.sell_coins_options = this.allCoins
-      }
-      this.updateSellAmount(this.sell_amount)
-    },
-    changeBuyToken (arg) {
-      console.log('change buy token', arg)
-      if (arg=="BIP") this.sell_coins_options = this.filterBIP(this.allCoins)      
-      else {
-        this.sell_coins_options = this.allCoins      
-        this.sell_coin = "BIP"
-        this.buy_coins = this.filterBIP(this.allCoins)
-      }
-      this.validateAddress(this.dest_address)
-      this.updateSellAmount(this.sell_amount)
-    },
-    reverseTokens () {
-      console.log('reverse tokens')
-      const buy_coin = this.buy_coin
-      const buy_options = this.buy_coins_options
-      this.buy_coin = this.sell_coin
-      this.buy_coins_options = this.sell_coins_options
-      this.sell_coin = buy_coin
-      this.sell_coins_options = buy_options
-      this.validateAddress(this.dest_address)
-      this.updateSellAmount(this.sell_amount)
-    },
+    // Калькулятор - обновляем сумму покупки
     updateSellAmount (arg) {
       console.log('updateSellAmount', arg)
       if (this.sell_coin == "BIP") {
@@ -387,35 +359,75 @@ export default {
       }
       this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
     },
-    updateBuyAmount (arg) {
-      console.log('update buy amount', arg)
-      if (this.sell_coin == "BIP") {
-        // продаем BIP
-        if (this.allRates) {
-          const rate = this.allRates.find(item=>item.coin == this.buy_coin)
-          console.log("rate: ", rate)
-          if (rate) {
-            const buy_price = rate.sell
-            this.sell_amount = this.buy_amount_btc * buy_price
-            console.log("sell amount: ", this.sell_amount, "buy price: ", buy_price)
-          }
+    // Загружаем текущие курсы валют  
+    updateRates (callback) {    
+      fetch(back_url+'rates')
+        .then(res => res.json())
+        .then(json => {
+          console.log("rates: ", json)
+          this.allRates = json.rates
+          fetch(back_url+'usd_price')
+            .then(res => res.json())
+            .then(json => {
+              console.log("usd_prices: ", json)
+              this.btc_usd = json.btc_usd
+              this.bip_usd = json.bip_usd
+              callback()
+          }).catch(console.error)    
+      }).catch(console.error)    
+    },
+    // Получаем сосояние контракта в базе
+    getContractState(contractId, callback) {
+      fetch(back_url+'contract/' + contractId)
+        .then(res => res.json())
+        .then(json => {
+          console.log("contract json: ", json)
+          callback(json)
+      }).catch(console.error)           
+    },
+    // Загружаем все операции из базы
+    getAllContracts (callback) {
+      fetch(back_url+'contracts')
+        .then(res => res.json())
+        .then(json => {
+          this.allContracts = json
+          console.log("contracts: ", this.allContracts)
+          callback()
+      }).catch(console.error)  
+    },
+    filterBIP(list) {
+      return list.filter(item=>item!="BIP")
+    },
+    isValidMinterAddress(address) {
+      return (/^(Mx){1}[0-9a-fA-F]{40}$/i.test(address));
+    },    
+    validateMinterAddress(address) {
+        if (this.isValidMinterAddress(address)) {
+          console.log('valid minter address: ', address)
+          this.showAddressError = false
+          this.invalidAddress = false
+        } else {
+          this.showAddressError = true
+          this.invalidAddress = true
+        }
+    },
+    // Проверяем адрес отправки
+    validateAddress(address) {
+      if (this.buy_coin == "BTC") {
+        var valid = WAValidator.validate(address, 'BTC')
+        if (valid) {
+          this.showAddressError = false
+          this.invalidAddress = false
+        } else {
+          this.showAddressError = true
+          this.invalidAddress = true
         }
       } else {
-        if (this.buy_coin == "BIP") {
-          // покупаем BIP
-          if (this.allRates) {
-            const rate = this.allRates.find(item=>item.coin == this.sell_coin)
-            console.log("rate: ", rate)
-            if (rate) {
-              const buy_price = rate.buy
-              this.sell_amount = this.buy_amount_btc / buy_price
-              console.log("sell amount: ", this.sell_amount, "buy price: ", buy_price)
-            }
-          }
-        } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
+          this.showAddressError = false
+          this.invalidAddress = false
       }
-      this.sell_amount = this.formatAmount(this.sell_amount, this.sell_coin)
     },
+    // Возвращает форматировнное кол-во токенов
     formatAmount(amount, coin) {
       if (coin == "BIP") {
         amount = Number(Math.trunc(amount * 10000)/10000)
@@ -447,67 +459,8 @@ export default {
         }
       }
       return amount
-    },    
-    updateRates (callback) {    
-      fetch(back_url+'rates')
-        .then(res => res.json())
-        .then(json => {
-          console.log("rates: ", json)
-          this.allRates = json.rates
-          fetch(back_url+'coins')
-            .then(res => res.json())
-            .then(json => {
-              console.log("coins: ", json)
-              this.allCoins = json.coins
-              this.sell_coins_options = this.allCoins
-              this.buy_coins_options = this.filterBIP(this.allCoins)
-              fetch(back_url+'usd_price')
-                .then(res => res.json())
-                .then(json => {
-                  console.log("usd_prices: ", json)
-                  this.btc_usd = json.btc_usd
-                  this.bip_usd = json.bip_usd
-                  callback()
-              }).catch(console.error)    
-          }).catch(console.error)        
-      }).catch(console.error)    
-      
     },
-    getAllContracts (callback) {
-      fetch(back_url+'contracts')
-        .then(res => res.json())
-        .then(json => {
-          this.allContracts = json
-          console.log("contracts: ", this.allContracts)
-          callback()
-      }).catch(console.error)  
-    },
-    filterBIP(list) {
-      return list.filter(item=>item!="BIP")
-    },
-    getContractState(contractId, callback) {
-      fetch(back_url+'contract/' + contractId)
-        .then(res => res.json())
-        .then(json => {
-          console.log("contract json: ", json)
-          callback(json)
-      }).catch(console.error)           
-    },
-    validateAddress(address) {
-      if (this.buy_coin == "BTC") {
-        var valid = WAValidator.validate(address, 'BTC')
-        if (valid) {
-          this.showAddressError = false
-          this.invalidAddress = false
-        } else {
-          this.showAddressError = true
-          this.invalidAddress = true
-        }
-      } else {
-          this.showAddressError = false
-          this.invalidAddress = false
-      }
-    },
+    // Возвращает сколько токенов должно быть отправлено по контракту
     amount_to_send(contract) {
       if (contract.send_amount) {
         return contract.send_amount + ' ' + contract.buy_coin
@@ -515,12 +468,14 @@ export default {
         return '-'
       }
     },
+    // Преобразуем дату в красивую
     formatDate(dateString) {
       let d = new Date(dateString)
       return d.toLocaleString("ru-RU", this.dateOptions)
     }   
   },
   computed: {
+    // Фильтруем только исполненные контракты
     completeContracts() {
       return this.allContracts.filter(item => item.state == "completed")
     }
