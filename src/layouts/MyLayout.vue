@@ -102,7 +102,7 @@ body {
 
 @media (min-width: 450px) {
     body {
-        font-size: 17px;
+        font-size: 22px;
     }
 }  
 
@@ -432,6 +432,7 @@ label {
     font-weight: 400;
     padding-top: 12px;
     pointer-events: none;
+    padding-bottom: 32px;
 }
 
 input {
@@ -684,7 +685,7 @@ footer {
 }
 
 .price_info {
-  font-size: 1.4em;
+  font-size: 1.0em;
 }
 
 .q-field__native {

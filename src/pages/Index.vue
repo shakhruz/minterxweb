@@ -11,15 +11,11 @@
               <span class="dashboard__price-value">
                   ${{ bip_usd | longUSD}}
               </span> 
-              <!-- <span class="dashboard__price-change dashboard__price-change--down">
-                -30.03%
-              </span> -->
             </div> 
             <div class="dashboard__period-title">
               1 BTC = ${{ btc_usd }}<br/>
               1000 satoshi = ${{ (btc_usd / 100000)  | fullUSD }}
             </div> 
-            <!-- <div class="dashboard__period-description">12 min 30 sec</div> -->
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
             <div class="history__chart-wrap" style="">
@@ -30,8 +26,6 @@
                     <q-input dark class="dashboard__price-value" v-model.number="sell_amount" @input='updateSellAmount'>
                       <template v-slot:prepend>
                           <img src="/statics/bip_token_small.png" width="40" height="40">
-                        <!-- <q-avatar>
-                        </q-avatar>                       -->
                       </template>
                     </q-input>
                     <span>~${{ sell_amount * bip_usd | fullUSD }}</span>
@@ -41,15 +35,8 @@
                         <li>
                           <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
                         </li>
-                        <!-- <li>
-                          <div class="">{{ buy_amount_btc | formatBTC }}</div>                    
-                        </li> -->
                       </ul>
                     </div>
-                  </div>
-                </div>
-                <div class="chartjs-size-monitor-shrink">
-                  <div class="">
                   </div>
                 </div>
               </div>
@@ -62,31 +49,22 @@
           <h1 class="u-h1 u-mb2">Быстрая покупка BIP</h1>
           <div class="u-grid u-grid--vertical-margin">
             <div class="u-cell u-cell--medium--4-10">
-              <!-- <h2 class="u-h4 u-mb1">Step 1</h2> -->
+              <h2 class="u-h4 u-mb1">Шаг 1</h2>
               <p>Для того, чтобы купить BIP введите свой адрес Minter кошелька и выберите форму оплаты (Bitcoin, ETH).</p>
               <p>Если у Вас нет Minter кошелька, Вы&nbsp;можете открыть его здесь - <a href="https://bip.to" class="link--default">https://bip.to</a>.</p> 
-              <!-- <p>Amount of BIP with price lower than current is <strong class="u-display-ib">720 619 BIP</strong></p> -->
             </div> 
             <div class="u-cell u-cell--medium--6-10">
               <form novalidate="novalidate" class="dashboard__well" _lpchecked="1">
                 <div class="form-row">
                   <label class="form-field form-field--invert">
-                    <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress'>
-                    </q-input>
-                    <!-- <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div> -->
-                    <!-- <input type="text" spellcheck="false" autocomplete="off" class="form-field__input">  -->
                     <span class="form-field__label">Адрес Вашего Minter кошелька 
                       <span class="dashboard__input-address-extra">(начинается с Mx)</span>
                     </span>
                   </label> 
+                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateAddress' />
                   <span v-if="showAddressError" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
-                  <!-- <label class="form-field is-error">
-                    <input type="email" spellcheck="false" class="form-field__input"> 
-                    <span class="form-field__label">E-mail</span>
-                  </label> 
-                  <span class="form-field__error">Enter your e-mail</span> -->
                 </div> 
                 <div class="form-row">
                   <button class="button button--main button--full">
@@ -98,11 +76,6 @@
                     <span class="button__content">Оплатить в ETH</span> 
                   </button>
                 </div> 
-                <!-- <div class="form-row">
-                  <button class="button button--main button--full is-disabled">
-                    <span class="button__content">Оплатить в USDT</span> 
-                  </button>
-                </div>  -->
               </form>
             </div>
           </div>
@@ -570,13 +543,13 @@ export default {
     },
     formatBTC(btc_amount) {
       if (btc_amount > 0.01) {
-        return Number(btc_amount.toFixed(4)) + 'btc'
+        return Number(btc_amount.toFixed(4)) + ' BTC'
       } else {
         const sat_amount = btc_amount * 100000000
         if (sat_amount > 100000) {
-          return Math.round(sat_amount / 1000) + 'k satoshi (' + Number(btc_amount.toFixed(8)) + 'btc)'
+          return Math.round(sat_amount / 1000) + 'k satoshi (' + Number(btc_amount.toFixed(8)) + ' BTC)'
         } else {
-          return formatLongNumber(sat_amount) + ' satoshi (' + Number(btc_amount.toFixed(8)) + 'btc)'
+          return formatLongNumber(sat_amount) + ' satoshi (' + Number(btc_amount.toFixed(8)) + ' BTC)'
         }
       }
     }        
