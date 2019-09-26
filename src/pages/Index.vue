@@ -62,7 +62,7 @@
                     </span>
                   </label> 
                   <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateMinterAddress' />
-                  <span v-if="invalidAddress" class="form-field__error">Введите правильный адрес Minter</span>
+                  <span v-if="showAddressErrorMessage" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
                 </div> 
@@ -179,6 +179,7 @@ export default {
 
       invalidAddress: true,
       disableSendBtcButton: false,
+      showAddressErrorMessage: false,
 
       // цены и курсы
       btc_usd: 0,
@@ -385,8 +386,10 @@ export default {
         if (this.isValidMinterAddress(address)) {
           console.log('valid minter address: ', address)
           this.invalidAddress = false
+          this.showAddressErrorMessage = false
         } else {
           this.invalidAddress = true
+          this.showAddressErrorMessage = true
         }
     },
     // Проверяем адрес отправки
@@ -395,11 +398,14 @@ export default {
         var valid = WAValidator.validate(address, 'BTC')
         if (valid) {
           this.invalidAddress = false
+          this.showAddressErrorMessage = false
         } else {
           this.invalidAddress = true
+          this.showAddressErrorMessage = true
         }
       } else {
           this.invalidAddress = false
+          this.showAddressErrorMessage = false
       }
     },
     // Возвращает форматировнное кол-во токенов
