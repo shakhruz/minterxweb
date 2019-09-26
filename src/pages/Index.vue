@@ -14,7 +14,7 @@
             </div> 
             <div class="dashboard__period-title">
               1 BTC = ${{ btc_usd }}<br/>
-              1000 satoshi = ${{ (btc_usd / 100000)  | fullUSD }}
+              1000 satoshi = ~${{ (btc_usd / 100000)  | fullUSD }}
             </div> 
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
@@ -47,7 +47,7 @@
       <main>
         <section class="u-section--margin u-container">
           <h1 class="u-h1 u-mb2">Быстрая покупка BIP</h1>
-          <div class="u-grid u-grid--vertical-margin">
+          <div v-if="showStep1" id="step1" class="u-grid u-grid--vertical-margin">
             <div class="u-cell u-cell--medium--4-10">
               <h2 class="u-h4 u-mb1">Шаг 1</h2>
               <p>Для того, чтобы купить BIP введите свой адрес Minter кошелька и выберите форму оплаты (Bitcoin, ETH).</p>
@@ -62,23 +62,54 @@
                     </span>
                   </label> 
                   <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateMinterAddress' />
-                  <span v-if="showAddressError" class="form-field__error">Введите правильный адрес Minter</span>
+                  <span v-if="invalidAddress" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
                 </div> 
                 <div class="form-row">
-                  <button class="button button--main button--full">
-                    <span class="button__content">Оплатить в BITCOIN</span> 
-                  </button>
+                  <q-btn outline color="orange" rounded size="lg" class="full-width q-mt-md" label="Оплатить в BITCOIN" @click.native="createContract" :disable="disableSendBtcButton || invalidAddress"/>
                 </div> 
                 <div class="form-row">
-                  <button class="button button--main button--full is-disabled">
-                    <span class="button__content">Оплатить в ETH</span> 
-                  </button>
+                  <q-btn outline color="blue" rounded size="lg" class="full-width q-mt-md" label="Оплатить в ETH" @click.native="createContract" :disable="true"/>
                 </div> 
               </form>
             </div>
           </div>
+          <div v-if="showStep2" id="step2" class="u-grid u-grid--vertical-margin">
+            <div class="u-cell u-cell--medium--4-10">
+              <h2 class="u-h4 u-mb1">Шаг 2</h2>
+                <div v-if="showSendToAddress" class="message">
+                  Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} в течение 60 минут.</strong
+                ></div>
+                <div v-if="showGotPayment" class="message">
+                  Перевод в размере <strong>{{ formatSendingAmount(contract.receivedCoins, sell_coin) }}</strong> для обмена получен.<br/> 
+                  Отправляем <strong>{{ contract.send_amount }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
+                </div>
+                <div v-if="showPaymentSent" class="message">
+                  Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}.<br/> 
+                  Сделка завершена. <br/>
+                  Проверить можно здесь - <a _target="blank" v-bind:href="''+ contract.outgoingTx +''">{{ contract.outgoingTx }}</a><br/>
+                  Спасибо за покупку!
+                </div>      
+                <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>
+            </div> 
+            <div class="u-cell u-cell--medium--6-10">
+              <form novalidate="novalidate" class="dashboard__well" _lpchecked="1">
+                <div class="form-row">
+                  <label class="form-field form-field--invert">
+                    <span class="form-field__label">Отправьте BTC на адрес: 
+                    </span>
+                  </label> 
+                  <q-input dark v-model="contract.receivingAddress" readonly>
+                    <template v-slot:after>
+                      <q-btn round dense flat icon="file_copy" @click.native="copyBTCAddress"/>
+                    </template>
+                  </q-input>
+                </div> 
+              </form>
+            </div>
+          </div>
+
         </section>
       </main>      
     </div>  
@@ -114,72 +145,6 @@
       </div>
     </footer>
   </q-page>  
-    <!-- <div class="main-content">
-      <div class="q-gutter-md">
-        <h3>Курсы Валют</h3>
-        <table>
-            <tr><td></td><td>Покупка</td><td>Продажа</td><td>В наличии</td></tr>
-            <tr v-for="rate in allRates" :key="rate.coin">
-              <td><strong>{{rate.coin }}</strong></td>
-              <td>{{ formatAmount(rate.buy, "BIP") }}</td>
-              <td>{{ formatAmount(rate.sell, "BIP") }}</td>
-              <td>{{ formatSendingAmount(rate.reserve, rate.coin) }}</td>
-            </tr>
-        </table>
-        <div>*Курсы указаны в BIP токенах.<br/>
-              1 BIP = {{ bip_usd | fullUSD}} USD<br/>
-              1 BTC = {{ btc_usd }} USD</div>
-      </div>
-    </div>
-    <div id="history" class="q-pa-md">
-      <div class="q-gutter-md">
-        <h3>История операций</h3>
-        <p>Всего: {{completeContracts.length}}</p>
-        <table>
-          <thead>
-            <tr>
-              <td>Время</td>
-              <td>Продажа</td>
-              <td>Покупка</td>
-              <td>Статус</td>
-            </tr>
-          </thead>
-          <tr v-for="co in completeContracts" :key="co._id">
-            <td>{{formatDate(co.date)}}</td>
-            <td>{{co.receivedCoins}} {{co.sell_coin}}</td>
-            <td>{{amount_to_send(co)}}</td>
-            <td>{{co.state}}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-    <div class="q-gutter-md">
-      <div>Заявка на обмен</div>
-      <div class="row">
-        <q-input outlined v-model.number="sell_amount" @input='updateSellAmount' :label="'Продаю в ' + sell_coin"/>
-        <q-select outlined v-model="sell_coin" :options="sell_coins_options" label="" @input="changeSellToken"/>
-      </div>
-      <q-btn outline color="primary" icon="compare_arrows" @click="reverseTokens"/>
-      <div class="row">
-        <q-input outlined v-model.number="buy_amount_btc" @input='updateBuyAmount' :label="'Получу в ' + buy_coin" />
-        <q-select outlined v-model="buy_coin" :options="buy_coins_options" label="" @input="changeBuyToken"/>
-      </div>
-      <q-input outlined v-model="dest_address" @input='validateAddress' :label="'адрес отправки ' + buy_coin" />
-      <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
-      <q-btn outline color="primary" label="Отправить" @click.native="createContract" :disable="disableSendBtcButton || invalidAddress"/>
-    </div>
-    <div v-if="showSendToAddress" class="message">Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} на адрес: <strong>{{receivingAddress}}</strong> в течение 60 минут.</strong></div>
-    <div v-if="showGotPayment" class="message">
-      Перевод в размере <strong>{{ formatSendingAmount(contract.receivedCoins, sell_coin) }}</strong> для обмена получен.<br/> 
-      Отправляем <strong>{{ contract.send_amount }} {{ buy_coin }}</strong> на адрес {{dest_address}} 
-    </div>
-    <div v-if="showPaymentSent" class="message">
-      Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}.<br/> 
-      Сделка завершена. <br/>
-      Проверить можно здесь - <a _target="blank" v-bind:href="''+ contract.outgoingTx +''">{{ contract.outgoingTx }}</a><br/>
-      Спасибо за покупку!
-    </div>      
-    <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>       -->
 </template>
 
 <script>
@@ -191,6 +156,9 @@ const minterApiUrl = 'https://explorer-api.apps.minter.network/api/'
 // const back_url = 'http://162.213.255.184:3333/'
 const back_url = 'http://localhost:3333/'
 
+import { Notify } from 'quasar'
+const copy = require('clipboard-copy')
+
 function formatLongNumber(long_number) {
   return Math.round(long_number).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ')
 }    
@@ -201,11 +169,10 @@ export default {
       // данные кулькулятора
       sell_amount: 100,
       buy_amount_btc: 0,
-      sell_coin: 'BIP',
-      buy_coin: 'BTC',
+      sell_coin: 'BTC',
+      buy_coin: 'BIP',
       dest_address: '',
 
-      showAddressError: false,
       invalidAddress: true,
       disableSendBtcButton: false,
 
@@ -216,7 +183,8 @@ export default {
       allRates: [],
 
       // данные шага 2, состояние текущей сделки
-      receivingAddress: '',
+      showStep1: true,
+      showStep2: false,
       contract: null,
 
       showSendToAddress: false,
@@ -280,8 +248,8 @@ export default {
     },
     // Отслеживаем контракт, ждем оплату, следим за отправкой купленных токенов
     processContract() {
-      this.receivingAddress = this.contract.receivingAddress
-      console.log("new BIP address", this.receivingAddress)
+      this.showStep1 = false
+      this.showStep2 = true
 
       this.showSendToAddress = true
       let contractComplete = false
@@ -332,32 +300,40 @@ export default {
     // Калькулятор - обновляем сумму покупки
     updateSellAmount (arg) {
       console.log('updateSellAmount', arg)
-      if (this.sell_coin == "BIP") {
-        // продаем BIP
-        if (this.allRates) {
-          const rate = this.allRates.find(item=>item.coin == this.buy_coin)
-          console.log("rate: ", rate)
-          if (rate) {
-            const buy_price = rate.sell
-            this.buy_amount_btc = this.sell_amount / buy_price
-            console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-          }
-        }
-      } else {
-        if (this.buy_coin == "BIP") {
-          // покупаем BIP
-          if (this.allRates) {
-            const rate = this.allRates.find(item=>item.coin == this.sell_coin)
-            console.log("rate: ", rate)
-            if (rate) {
-              const buy_price = rate.buy
-              this.buy_amount_btc = this.sell_amount * buy_price
-              console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-            }
-          }
-        } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
+      const rate = this.allRates.find(item=>item.coin == "BTC")
+      if (rate) {
+        console.log("btc rate: ", rate)
+        const buy_price = rate.sell
+        this.buy_amount_btc = this.sell_amount / buy_price
+        this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
+        console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
       }
-      this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
+
+      // if (this.sell_coin == "BIP") {
+      //   // продаем BIP
+      //   if (this.allRates) {
+      //     const rate = this.allRates.find(item=>item.coin == this.buy_coin)
+      //     console.log("rate: ", rate)
+      //     if (rate) {
+      //       const buy_price = rate.sell
+      //       this.buy_amount_btc = this.sell_amount / buy_price
+      //       console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
+      //     }
+      //   }
+      // } else {
+      //   if (this.buy_coin == "BIP") {
+      //     // покупаем BIP
+      //     if (this.allRates) {
+      //       const rate = this.allRates.find(item=>item.coin == this.sell_coin)
+      //       console.log("rate: ", rate)
+      //       if (rate) {
+      //         const buy_price = rate.buy
+      //         this.buy_amount_btc = this.sell_amount * buy_price
+      //         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
+      //       }
+      //     }
+      //   } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
+      // }
     },
     // Загружаем текущие курсы валют  
     updateRates (callback) {    
@@ -404,10 +380,8 @@ export default {
     validateMinterAddress(address) {
         if (this.isValidMinterAddress(address)) {
           console.log('valid minter address: ', address)
-          this.showAddressError = false
           this.invalidAddress = false
         } else {
-          this.showAddressError = true
           this.invalidAddress = true
         }
     },
@@ -416,14 +390,11 @@ export default {
       if (this.buy_coin == "BTC") {
         var valid = WAValidator.validate(address, 'BTC')
         if (valid) {
-          this.showAddressError = false
           this.invalidAddress = false
         } else {
-          this.showAddressError = true
           this.invalidAddress = true
         }
       } else {
-          this.showAddressError = false
           this.invalidAddress = false
       }
     },
@@ -472,6 +443,11 @@ export default {
     formatDate(dateString) {
       let d = new Date(dateString)
       return d.toLocaleString("ru-RU", this.dateOptions)
+    },
+    copyBTCAddress(arg) {
+      console.log("copy to clipboard: ", arg)
+      copy(this.contract.receivingAddress)
+      Notify.create('Скопировал Адрес в буфер обмена')
     }   
   },
   computed: {
