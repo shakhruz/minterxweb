@@ -106,6 +106,9 @@
                     </template>
                   </q-input>
                 </div> 
+                <div class="form-row" style="text-align: center">
+                  <qriously foreground="white" :value="contract.receivingAddress" :size="200" />
+                </div>
               </form>
             </div>
           </div>
