@@ -1,0 +1,694 @@
+<template>
+  <q-layout view="lHh Lpr lFf">
+    <div class="main-wrap">
+      <header class="header"> 
+        <div class="header__container u-container u-container--large">
+          <a href="/" class="header__logo no-link is-active ">
+          <img src="/statics/minterx-long-logo.png" alt="MinterX" height="36" class="header__logo-image"></a> 
+          <nav class="header__menu">
+            <a href="/#/" class="header__link is-active ">Купить BIP</a> 
+            <a href="/#/sell" class="header__link link2">Продать BIP</a>
+          </nav> 
+          <div class="header__controls u-hidden-small-down"></div>
+        </div>
+      </header>
+      <q-page-container>
+        <router-view />
+      </q-page-container>
+    </div>
+  </q-layout>
+</template>
+
+<script>
+import { openURL } from 'quasar'
+
+export default {
+  name: 'BuyLayout',
+  data () {
+    return {
+      leftDrawerOpen: false
+    }
+  },
+  methods: {
+    openURL
+  }
+}
+</script>
+
+<style>
+.error_message {
+  color: red;
+}
+
+td {
+  border: 1px solid grey;
+  text-align: left;
+  padding: 5px 5px;
+  margin: 0px 0px;
+}
+
+thead td {
+  text-align: center;
+}
+
+table {
+  border: 0px solid grey;
+  border-spacing: 0px;
+}
+
+.message {
+  margin: 10px 20px;
+}
+
+.error_message {
+  margin: 10px 20px;
+}
+
+html {
+  line-height: 1.15;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  overflow-y: scroll;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-overflow-scrolling: touch;
+}
+
+*, ::after, ::before {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  font-weight: 400;
+  background: #200f4e;
+}
+
+.main-wrap {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  /* background: url(/statics/main-bg.svg) 50% 0 no-repeat; */
+}
+
+@media (min-width: 450px) {
+    body {
+        font-size: 22px;
+    }
+}  
+
+@media (min-width: 900px) {
+    .main-wrap {
+        background-size: 100% 710px;
+    }
+}
+
+header {
+  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+  background: #281460;
+  color: #fff;
+  width: 100%;  
+  display: block;
+}
+
+.main-content {
+    width: 100%;
+    -webkit-box-flex: 2;
+    flex-grow: 2;
+}
+
+.header__menu {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    flex-direction: row;
+}
+
+.header__container {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    align-items: center;
+    height: 56px;
+}
+
+.u-container {
+    padding: 0 16px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+@media (min-width: 700px) {
+  .u-container--large {
+      max-width: 1020px;
+  }
+}
+
+@media (min-width: 700px) {
+  .u-container {
+      padding: 0 40px;
+      max-width: 860px;
+  }
+}
+
+@media (min-width: 350px) {
+  .u-container--large {
+      max-width: 980px;
+  }
+}
+
+@media (min-width: 350px) {
+  .u-container {
+      padding: 0 20px;
+      max-width: 820px;
+  }
+}
+
+.no-link {
+    text-decoration: none;
+}
+
+.header__logo-image {
+    vertical-align: top;
+    font-size: 36px;
+    line-height: 1;
+    font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    font-weight: 900;
+    font-style: italic;
+}
+
+.header__link {
+    position: relative;
+    font-size: 16px;
+    line-height: 56px;
+    text-decoration: none;
+    /* color: #ffa055; */
+    color: #36b534;
+    font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    font-weight: 900;
+}
+
+.link2 {
+    color: #f52da5;
+}
+
+
+.header__link.is-active::after, .header__link:hover::after {
+    opacity: 1;
+}
+
+@media (min-width: 350px) {
+  .header__link {
+      font-size: 18px;
+  }
+}
+
+@media (min-width: 450px) {
+  .header__link {
+      font-size: 24px;
+  }
+}
+
+.header__link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0;
+    -webkit-transition: .15s;
+    transition: .15s;
+}
+
+.header__link+.header__link {
+    margin-left: 24px;
+}
+
+.header__controls {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+}
+
+.q-field__native {
+  color: #cccccc;
+}
+
+ol, p, ul {
+    margin: 0;
+}
+
+section {
+    display: block;
+}
+
+.u-section--margin--top {
+    margin-top: 60px;
+}
+
+@media (min-width: 700px) {
+  .u-container {
+      padding: 0 40px;
+      max-width: 860px;
+  }
+}
+
+details, main {
+    display: block;
+}
+
+.u-section--margin {
+    margin-top: 60px;
+    margin-bottom: 60px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+}
+
+p+p {
+    margin-top: 16px;
+}
+
+.u-mb1 {
+    margin-bottom: 16px!important;
+}
+
+.u-mb2 {
+    margin-bottom: 32px!important;
+}
+
+.u-h1 {
+    font-size: 32px;
+    line-height: 1.1;
+}
+
+@media (min-width: 450px) {
+  .u-h1 {
+      font-size: 42px;
+  }
+}
+
+.u-h4 {
+    font: inherit;
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.u-grid {
+    display: -webkit-box;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -24px;
+}
+
+.u-grid--vertical-margin {
+    margin-top: -24px;
+}
+
+.u-cell {
+    width: 50%;
+}
+
+@media (min-width: 700px) {
+  .u-cell--medium--4-10 {
+      width: 40%;
+  }
+}
+
+.u-grid>.u-cell {
+    padding-left: 24px;
+}
+
+.u-grid--vertical-margin>.u-cell {
+    padding-top: 24px;
+}
+
+h2 {
+    display: block;
+    font-size: 1.5em;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+}
+
+.link, a {
+    color: inherit;
+    outline: 0;
+    text-decoration: none;
+    -webkit-text-decoration-skip: ink;
+    text-decoration-skip-ink: auto;
+    -webkit-transition: .1s;
+    transition: .1s;
+}
+
+.link--default {
+    font-weight: 700;
+    overflow-wrap: break-word;
+}
+
+.link--default, .link--default:focus, .link--default:hover {
+    color: #ffa055;
+}
+
+b, strong {
+    font-weight: bolder;
+}
+
+.u-display-ib {
+    display: inline-block!important;
+}
+
+@media (min-width: 700px) {
+  .u-cell--medium--6-10 {
+      width: 60%;
+  }
+}
+
+.u-grid>.u-cell {
+    padding-left: 24px;
+}
+
+.u-grid--vertical-margin>.u-cell {
+    padding-top: 24px;
+}
+
+form {
+    display: block;
+    margin-top: 0em;
+}
+
+.dashboard__well {
+    /* border: 2px solid #41249e; */
+    border: 2px solid #585858;
+    border-radius: 16px;
+    padding: 16px;
+    background: #200f4e;
+}
+
+@media (min-width: 450px) {
+  .dashboard__well {
+      padding: 24px;
+  }
+}
+
+label {
+    cursor: default;
+}
+
+.form-field {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    font-weight: 400;
+    padding-top: 12px;
+    pointer-events: none;
+    padding-bottom: 32px;
+}
+
+input {
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: initial;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    -webkit-appearance: textfield;
+    background-color: white;
+    -webkit-rtl-ordering: logical;
+    cursor: text;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+    padding: 1px 0px;
+    border-width: 2px;
+    border-style: inset;
+    border-color: initial;
+    border-image: initial;
+}
+
+button, dl dl, dl ol, dl ul, input, ol dl, ol ol, ol ul, select, ul dl, ul ol, ul ul {
+    margin: 0;
+}
+
+input {
+    overflow: visible;
+    vertical-align: middle;
+}
+
+input, select, textarea {
+    font: inherit;
+    color: #333;
+    outline: 0;
+    caret-color: #ffa055;
+}
+
+.form-field__input {
+    padding: 4px 0;
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: .2px;
+    color: inherit;
+    background: 0 0;
+    border: none;
+    /* border-bottom: 2px solid #a1a3a4; */
+    -webkit-transition: .15s;
+    transition: .15s;
+    display: block;
+    width: 100%;
+    pointer-events: auto;
+    border-radius: 0;
+    min-width: 0;
+    opacity: 1;
+    -webkit-text-fill-color: currentcolor;
+}
+
+.form-field--invert>.form-field__input {
+    border-color: rgba(255,255,255,.4);
+}
+
+.is-error>.form-field__input {
+    border-color: #f13c3c;
+}
+
+.form-field__label {
+    font-size: 16px;
+    line-height: 20px;
+    opacity: .6;
+    position: absolute;
+    left: 0;
+    top: 16px;
+    -webkit-transition: .2s cubic-bezier(.215,.61,.355,1);
+    transition: .2s cubic-bezier(.215,.61,.355,1);
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.form-field.is-error>.form-field__label {
+    color: #f13c3c;
+    opacity: 1;
+}
+
+.form-field__error {
+    font-size: 12px;
+    color: #f13c3c;
+    margin-top: 8px;
+    overflow-wrap: break-word;
+    display: block;
+}
+
+.form-row+.form-row {
+    margin-top: 24px;
+}
+
+button {
+    -webkit-appearance: button;
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: buttontext;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: center;
+    align-items: flex-start;
+    cursor: default;
+    background-color: buttonface;
+    box-sizing: border-box;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+    padding: 1px 6px;
+    border-width: 2px;
+    border-style: outset;
+    border-color: buttonface;
+    border-image: initial;
+}
+
+button, dl dl, dl ol, dl ul, input, ol dl, ol ol, ol ul, select, ul dl, ul ol, ul ul {
+    margin: 0;
+}
+
+[type=button], [type=reset], [type=submit], button {
+    -webkit-appearance: button;
+}
+
+.button {
+    display: -webkit-inline-box;
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    padding: 8px 32px;
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 900;
+    font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    background: #fff;
+    color: #333;
+    border-radius: 19px;
+    text-align: center;
+    border: 2px solid transparent;
+    text-decoration: none;
+    -webkit-transition: .1s;
+    transition: .1s;
+    position: relative;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.button--main {
+    color: #fff;
+    background: #ffa055;
+}
+
+.button--full {
+    display: block;
+    width: 100%;
+}
+
+.button.is-disabled, .button[disabled] {
+    cursor: default;
+}
+
+.button.is-disabled:not(.is-loading), .button[disabled]:not(.is-loading) {
+    background: #b3b3b3;
+}
+
+footer {
+    display: block;
+}
+
+.footer {
+    padding: 24px 0;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+}
+
+@media (min-width: 700px) {
+  .footer {
+      text-align: right;
+      padding: 40px 0;
+  }
+}
+
+@media (min-width: 700px) {
+  .u-container--large {
+      max-width: 1020px;
+  }
+}
+
+.footer__menu-item {
+    font-size: 17px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.dashboard__price-title {
+    text-transform: uppercase;
+    font: inherit;
+    font-weight: 700;
+    /* font-size: 14px; */
+    font-size: 1.1em;
+    letter-spacing: .4px;
+}
+
+.dashboard__price-value {
+    font-family: Ratio,Ubuntu,system-ui,-apple-system,Segoe UI,SimSun,PingFang SC,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    font-size: 60px;
+    font-weight: 900;
+    line-height: 1.1;
+    vertical-align: middle;
+}
+
+.dashboard__period-title {
+  font-size: 1.1em;
+}
+
+.dashboard__price-change {
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align: middle;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+.dashboard__price-change--down {
+    color: #d14242;
+}
+
+.footer__menu-item::after {
+    content: ' | ';
+    margin: 0 3px;
+    font-size: 1.4em;
+}
+
+.price_info {
+  font-size: 1.0em;
+}
+
+.q-field__native {
+  padding-bottom: 22px;
+}
+
+</style>
