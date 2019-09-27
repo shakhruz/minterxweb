@@ -308,7 +308,7 @@ export default {
       const rate = this.allRates.find(item=>item.coin == "BTC")
       if (rate) {
         console.log("btc rate: ", rate)
-        const buy_price = rate.sell
+        const buy_price = rate.buy
         this.buy_amount_btc = this.sell_amount / buy_price
         this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)

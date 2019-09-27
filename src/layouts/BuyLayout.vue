@@ -688,7 +688,8 @@ footer {
 }
 
 .q-field__native {
-  padding-bottom: 22px;
+    padding-bottom: 22px;
+    font-size: 17px;
 }
 
 </style>

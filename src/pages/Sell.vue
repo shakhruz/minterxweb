@@ -94,7 +94,7 @@
               <form novalidate="novalidate" class="dashboard__well" _lpchecked="1">
                 <div class="form-row">
                   <label class="form-field form-field--invert">
-                    <span class="form-field__label">Отправьте BTC на адрес: 
+                    <span class="form-field__label">Отправьте BIP на адрес: 
                     </span>
                   </label> 
                   <q-input dark v-model="contract.receivingAddress" readonly>
@@ -105,7 +105,7 @@
                 </div> 
                 <div class="form-row" style="text-align: center">
                   <qriously 
-                  :value="'bitcoin:' + contract.receivingAddress + '?amount=' + buy_amount_btc" :size="300" />
+                  :value="contract.receivingAddress" :size="300" />
                 </div>
               </form>
             </div>
@@ -170,8 +170,8 @@ export default {
       // данные кулькулятора
       sell_amount: 100,
       buy_amount_btc: 0,
-      sell_coin: 'BTC',
-      buy_coin: 'BIP',
+      sell_coin: 'BIP',
+      buy_coin: 'BTC',
       dest_address: '',
 
       invalidAddress: true,
@@ -204,9 +204,6 @@ export default {
       console.log("rates ready...")
       this.updateSellAmount(this.sell_amount)
     })
-    // this.getAllContracts(()=>{
-    //   console.log("contracts loaded...")
-    // })
   },
   mounted() {
     console.log("mounted...")
@@ -224,13 +221,13 @@ export default {
     // Создаем новый контракт в базе данных
     createContract (buy_coin) {
       this.buy_coin = buy_coin
-      console.log('check address ', this.buy_coin)
-      if (!this.isValidAddress(this.dest_address, this.buy_coin)) {
+      if (!this.isValidAddress(this.buy_coin, this.dest_address)) {
           this.invalidAddress = true
           this.showAddressErrorMessage = true
           // адрес доставки неправильный, останавливаем процесс
           return
       } else {
+          // адрес правильный, прячем сообщение об ошибке
           this.invalidAddress = false
           this.showAddressErrorMessage = false
       }
@@ -322,32 +319,6 @@ export default {
         this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
       }
-
-      // if (this.sell_coin == "BIP") {
-      //   // продаем BIP
-      //   if (this.allRates) {
-      //     const rate = this.allRates.find(item=>item.coin == this.buy_coin)
-      //     console.log("rate: ", rate)
-      //     if (rate) {
-      //       const buy_price = rate.sell
-      //       this.buy_amount_btc = this.sell_amount / buy_price
-      //       console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-      //     }
-      //   }
-      // } else {
-      //   if (this.buy_coin == "BIP") {
-      //     // покупаем BIP
-      //     if (this.allRates) {
-      //       const rate = this.allRates.find(item=>item.coin == this.sell_coin)
-      //       console.log("rate: ", rate)
-      //       if (rate) {
-      //         const buy_price = rate.buy
-      //         this.buy_amount_btc = this.sell_amount * buy_price
-      //         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-      //       }
-      //     }
-      //   } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
-      // }
     },
     // Загружаем текущие курсы валют  
     updateRates (callback) {    
@@ -375,16 +346,6 @@ export default {
           callback(json)
       }).catch(console.error)           
     },
-    // Загружаем все операции из базы
-    getAllContracts (callback) {
-      fetch(back_url+'contracts')
-        .then(res => res.json())
-        .then(json => {
-          this.allContracts = json
-          console.log("contracts: ", this.allContracts)
-          callback()
-      }).catch(console.error)  
-    },
     filterBIP(list) {
       return list.filter(item=>item!="BIP")
     },
@@ -394,43 +355,17 @@ export default {
     isValidETHAddress(address) {
       return (/^(0x){1}[0-9a-fA-F]{40}$/i.test(address));
     },    
-    validateMinterAddress(address) {
-        if (this.isValidMinterAddress(address)) {
-          console.log('valid minter address: ', address)
-          this.invalidAddress = false
-          this.showAddressErrorMessage = false
-        } else {
-          this.invalidAddress = true
-          this.showAddressErrorMessage = true
-        }
-    },
-    isValidAddress(coin) {
+    isValidAddress(coin, address) {
       if (coin=="BTC") {
-        return WAValidator.validate(this.dest_address, 'BTC')
+        return WAValidator.validate(address, 'BTC')
       } else {
         if (coin=="BIP") {
-          return this.isValidMinterAddress(this.dest_address)
+          return this.isValidMinterAddress(address)
         } else {
           if (coin=="ETH" || coin =="USDT") {
-            return this.isValidETHAddress(this.dest_address)
+            return this.isValidETHAddress(address)
           } 
         }
-      }
-    },
-    // Проверяем адрес отправки
-    validateAddress(address) {
-      if (this.buy_coin == "BTC") {
-        var valid = WAValidator.validate(address, 'BTC')
-        if (valid) {
-          this.invalidAddress = false
-          this.showAddressErrorMessage = false
-        } else {
-          this.invalidAddress = true
-          this.showAddressErrorMessage = true
-        }
-      } else {
-          this.invalidAddress = false
-          this.showAddressErrorMessage = false
       }
     },
     // Возвращает форматировнное кол-во токенов
