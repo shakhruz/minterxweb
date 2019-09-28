@@ -58,7 +58,7 @@
                   <label class="form-field form-field--invert">
                     <span class="form-field__label">Адрес кошелька для получения токенов</span>
                   </label> 
-                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" />
+                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input address" />
                   <span v-if="showAddressErrorMessage" class="form-field__error">Введите правильный адрес</span>
                 </div> 
                 <div class="form-row">
@@ -97,7 +97,7 @@
                     <span class="form-field__label">Отправьте BIP на адрес: 
                     </span>
                   </label> 
-                  <q-input dark v-model="contract.receivingAddress" readonly>
+                  <q-input dark v-model="contract.receivingAddress" readonly class="address">
                     <template v-slot:after>
                       <q-btn round dense flat icon="file_copy" @click.native="copyBTCAddress"/>
                     </template>

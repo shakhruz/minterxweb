@@ -61,7 +61,7 @@
                       <span class="dashboard__input-address-extra">(начинается с Mx)</span>
                     </span>
                   </label> 
-                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input" @input='validateMinterAddress' />
+                  <q-input dark v-model="dest_address" spellcheck="false" autocomplete="off" class="form-field__input address" @input='validateMinterAddress' />
                   <span v-if="showAddressErrorMessage" class="form-field__error">Введите правильный адрес Minter</span>
                 </div> 
                 <div class="form-row">
@@ -100,7 +100,7 @@
                     <span class="form-field__label">Отправьте BTC на адрес: 
                     </span>
                   </label> 
-                  <q-input dark v-model="contract.receivingAddress" readonly>
+                  <q-input dark v-model="contract.receivingAddress" readonly class="address">
                     <template v-slot:after>
                       <q-btn round dense flat icon="file_copy" @click.native="copyBTCAddress"/>
                     </template>
@@ -313,32 +313,6 @@ export default {
         this.buy_amount_btc = this.formatAmount(this.buy_amount_btc, this.buy_coin)
         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
       }
-
-      // if (this.sell_coin == "BIP") {
-      //   // продаем BIP
-      //   if (this.allRates) {
-      //     const rate = this.allRates.find(item=>item.coin == this.buy_coin)
-      //     console.log("rate: ", rate)
-      //     if (rate) {
-      //       const buy_price = rate.sell
-      //       this.buy_amount_btc = this.sell_amount / buy_price
-      //       console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-      //     }
-      //   }
-      // } else {
-      //   if (this.buy_coin == "BIP") {
-      //     // покупаем BIP
-      //     if (this.allRates) {
-      //       const rate = this.allRates.find(item=>item.coin == this.sell_coin)
-      //       console.log("rate: ", rate)
-      //       if (rate) {
-      //         const buy_price = rate.buy
-      //         this.buy_amount_btc = this.sell_amount * buy_price
-      //         console.log("buy amount: ", this.buy_amount_btc, "buy price: ", buy_price)
-      //       }
-      //     }
-      //   } else console.log("не могу посчитать сделку, один из токенов должен быть BIP")
-      // }
     },
     // Загружаем текущие курсы валют  
     updateRates (callback) {    

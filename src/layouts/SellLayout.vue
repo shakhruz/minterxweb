@@ -689,7 +689,10 @@ footer {
 
 .q-field__native {
     padding-bottom: 22px;
-    font-size: 17px;
+}
+
+.address {
+    font-size: 20px;
 }
 
 </style>
