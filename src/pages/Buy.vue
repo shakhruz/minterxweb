@@ -122,7 +122,7 @@
               >Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} в течение 60 минут.</div>
               <div v-if="showGotPayment" class="message">
                 Перевод в размере
-                <strong>{{ utils.formatSendingAmount(contract.receivedCoins, sell_coin) }}</strong> для обмена получен.
+                <strong>{{ (contract.receivedCoins, sell_coin) | myFullFormat(sell_coin) }}</strong> для обмена получен.
                 <br />Отправляем
                 <strong>{{ contract.send_amount }} {{ buy_coin }}</strong>
                 на адрес {{ dest_address }}
@@ -392,6 +392,9 @@ export default {
   filters: {
     myFormat(amount, type) {
       return utils.myFormat(amount, type);
+    },
+    myFullFormat(amount, coin) {
+      return utils.formatSendingAmount(amount, coin);
     }
   }
 };
