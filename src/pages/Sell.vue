@@ -286,8 +286,8 @@ export default {
         this.buy_amount_btc,
         this.dest_address,
         contract => {
-          console.log("new contract: ", json);
-          this.contract = json;
+          console.log("new contract: ", contract);
+          this.contract = contract;
           this.processContract();
         }
       );
@@ -347,18 +347,13 @@ export default {
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
-      console.log("updateSellAmount", arg);
-
       // Посчитать в BTC
       const rate = this.allRates.find(item => item.coin == "BTC");
       if (rate) {
-        console.log("btc rate: ", rate);
+        // console.log("btc rate: ", rate);
         const buy_price = rate.sell;
         this.buy_amount_btc = this.sell_amount / buy_price;
-        this.buy_amount_btc = utils.formatAmount(
-          this.buy_amount_btc,
-          this.buy_coin
-        );
+        this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
 
       // TODO: посчитать в ETH, USDT
@@ -372,6 +367,7 @@ export default {
         callback(true);
       });
     },
+    // копируем в буфер обмена
     copyAddress(arg) {
       copy(arg);
       Notify.create("Скопировал Адрес в буфер обмена");

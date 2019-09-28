@@ -15,7 +15,7 @@ function getRates(callback) {
   fetch(data.back_url + "rates")
     .then(res => res.json())
     .then(json_rates => {
-      console.log("rates: ", json_rates);
+      //   console.log("rates: ", json_rates);
       fetch(data.back_url + "usd_price")
         .then(res => res.json())
         .then(json => {
@@ -67,7 +67,7 @@ function createContract(
 
   const opts = { sell_coin, buy_coin, sell_amount, buy_amount, toAddress };
 
-  fetch(back_url + "contracts", {
+  fetch(data.back_url + "contracts", {
     method: "POST",
     body: JSON.stringify(opts),
     headers: {

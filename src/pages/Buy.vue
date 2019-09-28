@@ -116,10 +116,10 @@
           <div v-if="showStep2" id="step2" class="u-grid u-grid--vertical-margin">
             <div class="u-cell u-cell--medium--4-10">
               <h2 class="u-h4 u-mb1">Шаг 2</h2>
-              <div v-if="showSendToAddress" class="message">
-                Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} в течение 60 минут.
-                >
-              </div>
+              <div
+                v-if="showSendToAddress"
+                class="message"
+              >Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} в течение 60 минут.</div>
               <div v-if="showGotPayment" class="message">
                 Перевод в размере
                 <strong>{{ utils.formatSendingAmount(contract.receivedCoins, sell_coin) }}</strong> для обмена получен.
@@ -292,8 +292,8 @@ export default {
         this.buy_amount_btc,
         this.dest_address,
         contract => {
-          console.log("new contract: ", json);
-          this.contract = json;
+          console.log("new contract: ", contract);
+          this.contract = contract;
           this.processContract();
         }
       );
@@ -353,17 +353,12 @@ export default {
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
-      console.log("updateSellAmount", arg);
-
       // посчитать в BTC
       const rate = this.allRates.find(item => item.coin == "BTC");
       if (rate) {
         const buy_price = rate.buy;
         this.buy_amount_btc = this.sell_amount / buy_price;
-        this.buy_amount_btc = utils.formatAmount(
-          this.buy_amount_btc,
-          this.buy_coin
-        );
+        this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
 
       // TODO: посчитать в ETH, USDT
@@ -377,10 +372,12 @@ export default {
         callback(true);
       });
     },
+    // скопировать в буфер обмена
     copyAddress(arg) {
       copy(arg);
       Notify.create("Скопировал Адрес в буфер обмена");
     },
+    // проверить минтер адрес
     validateMinterAddress(address) {
       if (utils.isValidMinterAddress(address)) {
         this.invalidAddress = false;
