@@ -254,11 +254,19 @@ export default {
     };
   },
   created() {
-    this.utils = utils;
+    // обновляем сразу
     this.updateRates(result => {
       console.log("rates ready..." + result);
       this.updateSellAmount(this.sell_amount);
     });
+
+    // обновляем регулярно
+    setInterval(() => {
+      this.updateRates(result => {
+        console.log("rates ready..." + result);
+        this.updateSellAmount(this.sell_amount);
+      });
+    }, 10000);
   },
   mounted() {
     // console.log("mounted...")
