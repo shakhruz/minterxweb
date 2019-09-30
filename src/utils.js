@@ -37,6 +37,16 @@ function getContractState(contractId, callback) {
     .catch(console.error);
 }
 
+function isValidAddress(address, coin) {
+  if (coin == "BTC") {
+    return WAValidator.validate(address, "BTC");
+  } else {
+    if (coin == "ETH" || coin == "USDT") {
+      return isValidETHAddress(address);
+    }
+  }
+}
+
 // Загружаем все операции из базы
 function getAllContracts(callback) {
   fetch(data.back_url + "contracts")
@@ -52,6 +62,10 @@ function getAllContracts(callback) {
 // Проверка минтер адреса
 function isValidMinterAddress(address) {
   return /^(Mx){1}[0-9a-fA-F]{40}$/i.test(address);
+}
+
+function isValidETHAddress(address) {
+  return /^(0x){1}[0-9a-fA-F]{40}$/i.test(address);
 }
 
 // Создаем контракт в базе через бэкенд
@@ -190,5 +204,6 @@ export default {
   formatDate,
   completeContracts,
   formatBTC,
-  myFormat
+  myFormat,
+  isValidAddress
 };

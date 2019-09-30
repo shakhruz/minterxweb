@@ -374,7 +374,7 @@ export default {
     },
     // скопировать в буфер обмена
     copyAddress(arg) {
-      copy(arg);
+      copy(this.contract.receivingAddress);
       Notify.create("Скопировал Адрес в буфер обмена");
     },
     // проверить минтер адрес

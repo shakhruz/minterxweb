@@ -63,11 +63,11 @@ table {
 }
 
 .message {
-  margin: 10px 20px;
+  /* margin: 10px 20px; */
 }
 
 .error_message {
-  margin: 10px 20px;
+  /* margin: 10px 20px; */
 }
 
 html {

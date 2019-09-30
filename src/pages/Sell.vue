@@ -266,7 +266,7 @@ export default {
     // Создаем новый контракт в базе данных
     createContract(buy_coin) {
       this.buy_coin = buy_coin;
-      if (!this.isValidAddress(this.buy_coin, this.dest_address)) {
+      if (!utils.isValidAddress(this.dest_address, this.buy_coin)) {
         this.invalidAddress = true;
         this.showAddressErrorMessage = true;
         // адрес доставки неправильный, останавливаем процесс
@@ -369,7 +369,7 @@ export default {
     },
     // копируем в буфер обмена
     copyAddress(arg) {
-      copy(arg);
+      copy(this.contract.receivingAddress);
       Notify.create("Скопировал Адрес в буфер обмена");
     }
   },
