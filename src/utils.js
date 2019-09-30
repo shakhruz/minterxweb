@@ -19,7 +19,7 @@ function getRates(callback) {
       fetch(data.back_url + "usd_price")
         .then(res => res.json())
         .then(json => {
-          callback(json_rates.rates, json.btc_usd, json.bip_usd);
+          callback(json_rates.rates, json.btc_usd, json.bip_usd, json.eth_usd);
         })
         .catch(console.error);
     })
@@ -98,37 +98,47 @@ function createContract(
 
 // Возвращает форматированное кол-во токенов
 function formatAmount(amount, coin) {
-  if (coin == "BIP") {
-    amount = Number(Math.trunc(amount * 10000) / 10000);
-  } else {
-    if (coin == "BTC") {
+  switch (coin) {
+    case "BIP":
+      amount = Number(Math.trunc(amount * 10000) / 10000);
+      break;
+    case "BTC":
       amount = Number(amount.toFixed(8));
-    } else {
-      if (coin == "USDT") {
-        amount = Number(amount.toFixed(4));
-      } else {
-        if ((coin = "USD")) {
-          return Number(amount.toFixed(2));
-        }
-      }
-    }
+      break;
+    case "USDT":
+      amount = Number(amount.toFixed(4));
+      break;
+    case "USD":
+      amount = Number(amount.toFixed(2));
+      break;
+    case "ETH":
+      amount = Number(amount.toFixed(6));
+      break;
+    default:
+      amount = Number(amount.toFixed(2));
   }
   return amount;
 }
 
 // Полноформатная сумма вместе с тикером токена
-function formatSendingAmount(amount, coin) {
-  if (coin == "BIP") {
-    amount = Number(Math.trunc(amount * 10000) / 10000) + " " + coin;
-  } else {
-    if (coin == "BTC") {
+function formatWithCoin(amount, coin) {
+  switch (coin) {
+    case "BIP":
+      amount = Number(Math.trunc(amount * 10000) / 10000) + " " + coin;
+      break;
+    case "BTC":
       amount =
         amount + "sat (" + Number((amount / 100000000).toFixed(8)) + ") BTC";
-    } else {
-      if (coin == "USDT") {
-        amount = Number(amount.toFixed(4)) + " USDT";
-      }
-    }
+      break;
+    case "USDT":
+      amount = Number(amount.toFixed(4)) + " USDT";
+      break;
+    case "ETH":
+      amount = Number(amount.toFixed(6)) + " ETH";
+      break;
+    default:
+      amount = Number(amount.toFixed(4)) + " " + coin;
+      break;
   }
   return amount;
 }
@@ -156,6 +166,8 @@ function myFormat(amount, type) {
       return Math.trunc(amount);
     case "fullUSD":
       return Number(amount).toFixed(2);
+    case "fullETH":
+      return Number(amount).toFixed(6);
     case "longUSD":
       return Number(amount).toFixed(4);
     case "BIPFormat":
@@ -200,7 +212,7 @@ export default {
   isValidMinterAddress,
   createContract,
   formatAmount,
-  formatSendingAmount,
+  formatWithCoin,
   formatDate,
   completeContracts,
   formatBTC,

@@ -12,6 +12,8 @@
               1 BTC = ${{ btc_usd }}
               <br />
               1000 satoshi = ~${{ (btc_usd / 100000) | myFormat("fullUSD") }}
+              <br />
+              1 ETH = ~${{ (eth_usd) | myFormat("fullUSD") }}
             </div>
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
@@ -36,6 +38,9 @@
                       <ul>
                         <li>
                           <div this.class>{{ (buy_amount_btc) | myFormat("formatBTC")}}</div>
+                        </li>
+                        <li>
+                          <div this.class>{{ (buy_amount_eth) | formatWithCoin("ETH")}}</div>
                         </li>
                       </ul>
                     </div>
@@ -94,7 +99,7 @@
                     size="lg"
                     class="full-width q-mt-md"
                     label="Оплатить в BITCOIN"
-                    @click.native="createContract"
+                    @click.native="createContract('BTC')"
                     :disable="disableSendBtcButton || invalidAddress"
                   />
                 </div>
@@ -106,8 +111,8 @@
                     size="lg"
                     class="full-width q-mt-md"
                     label="Оплатить в ETH"
-                    @click.native="createContract"
-                    :disable="true"
+                    @click.native="createContract('ETH')"
+                    :disable="disableSendEthButton || invalidAddress"
                   />
                 </div>
               </form>
@@ -122,7 +127,7 @@
               >Ваша заявка на обмен принята. Пожалуйста отправьте {{ sell_coin }} в течение 60 минут.</div>
               <div v-if="showGotPayment" class="message">
                 Перевод в размере
-                <strong>{{ contract.receivedCoins | myFullFormat(sell_coin) }}</strong> для обмена получен.
+                <strong>{{ contract.receivedCoins | formatWithCoin(sell_coin) }}</strong> для обмена получен.
                 <br />Отправляем
                 <strong>{{ contract.send_amount }} {{ buy_coin }}</strong>
                 на адрес {{ dest_address }}
@@ -228,17 +233,20 @@ export default {
       // данные кулькулятора
       sell_amount: 100,
       buy_amount_btc: 0,
+      buy_amount_eth: 0,
       sell_coin: "BTC",
       buy_coin: "BIP",
       dest_address: "",
 
       invalidAddress: true,
       disableSendBtcButton: false,
+      disableSendEthButton: false,
       showAddressErrorMessage: false,
 
       // цены и курсы
       btc_usd: 0,
       bip_usd: 0,
+      eth_usd: 0,
       allRates: [],
 
       // данные шага 2, состояние текущей сделки
@@ -275,6 +283,7 @@ export default {
     // обнулить состояние формы зяавки
     resetFormData() {
       this.disableSendBtcButton = true;
+      this.disableSendEthButton = true;
       this.showErrorMessage = false;
       this.error_message = "";
       this.showSendToAddress = false;
@@ -282,11 +291,11 @@ export default {
       this.showPaymentSent = false;
     },
     // Создаем новый контракт в базе данных
-    createContract() {
+    createContract(sell_coin) {
       this.resetFormData();
       console.log("create contract");
       utils.createContract(
-        this.sell_coin,
+        sell_coin,
         this.buy_coin,
         this.sell_amount,
         this.buy_amount_btc,
@@ -327,6 +336,7 @@ export default {
               contractComplete = true;
               this.showPaymentSent = true;
               this.disableSendBtcButton = false;
+              this.disableSendEthButton = false;
               clearInterval(interval);
               console.log("contract complete");
               break;
@@ -334,6 +344,7 @@ export default {
               this.showErrorMessage = true;
               this.error_message = this.contract.message;
               this.disableSendBtcButton = false;
+              this.disableSendEthButton = false;
               clearInterval(interval);
               console.log("contract complete");
               break;
@@ -344,6 +355,7 @@ export default {
           if (tries < 1) {
             clearInterval(interval);
             this.disableSendBtcButton = false;
+            this.disableSendEthButton = false;
             console.log(
               "cancelled checking contract " + this.contract._id + " timed out"
             );
@@ -354,21 +366,30 @@ export default {
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
       // посчитать в BTC
-      const rate = this.allRates.find(item => item.coin == "BTC");
+      let rate = this.allRates.find(item => item.coin == "BTC");
       if (rate) {
         const buy_price = rate.buy;
         this.buy_amount_btc = this.sell_amount / buy_price;
         this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
 
-      // TODO: посчитать в ETH, USDT
+      // посчитать в ETH
+      rate = this.allRates.find(item => item.coin == "ETH");
+      if (rate) {
+        const buy_eth_price = rate.buy;
+        this.buy_amount_eth = this.sell_amount / buy_eth_price;
+        this.buy_amount_eth = utils.formatAmount(this.buy_amount_eth, "ETH");
+      }
+
+      // TODO: посчитать в USDT
     },
     // Загружаем текущие курсы валют
     updateRates(callback) {
-      utils.getRates((allRates, btc_usd, bip_usd) => {
+      utils.getRates((allRates, btc_usd, bip_usd, eth_usd) => {
         this.allRates = allRates;
         this.btc_usd = btc_usd;
         this.bip_usd = bip_usd;
+        this.eth_usd = eth_usd;
         callback(true);
       });
     },
@@ -393,8 +414,8 @@ export default {
     myFormat(amount, type) {
       return utils.myFormat(amount, type);
     },
-    myFullFormat(amount, coin) {
-      return utils.formatSendingAmount(amount, coin);
+    formatWithCoin(amount, coin) {
+      return utils.formatWithCoin(amount, coin);
     }
   }
 };

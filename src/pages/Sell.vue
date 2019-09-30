@@ -12,6 +12,8 @@
               1 BTC = ${{ btc_usd }}
               <br />
               1000 satoshi = ~${{ (btc_usd / 100000) | myFormat("fullUSD") }}
+              <br />
+              1 ETH = ~${{ (eth_usd) | myFormat("fullUSD") }}
             </div>
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
@@ -36,6 +38,9 @@
                       <ul>
                         <li>
                           <div class>{{ buy_amount_btc | myFormat("formatBTC") }}</div>
+                        </li>
+                        <li>
+                          <div this.class>{{ (buy_amount_eth) | formatWithCoin("ETH")}}</div>
                         </li>
                       </ul>
                     </div>
@@ -93,7 +98,6 @@
                     class="full-width q-mt-md"
                     label="Получить  ETH"
                     @click.native="createContract('ETH')"
-                    :disable="true"
                   />
                 </div>
               </form>
@@ -210,17 +214,20 @@ export default {
       // данные кулькулятора
       sell_amount: 100,
       buy_amount_btc: 0,
+      buy_amount_eth: 0,
       sell_coin: "BIP",
       buy_coin: "BTC",
       dest_address: "",
 
       invalidAddress: true,
       disableSendBtcButton: false,
+      disableSendEthButton: false,
       showAddressErrorMessage: false,
 
       // цены и курсы
       btc_usd: 0,
       bip_usd: 0,
+      eth_usd: 0,
       allRates: [],
 
       // данные шага 2, состояние текущей сделки
@@ -257,6 +264,7 @@ export default {
     // обнулить состояние формы зяавки
     resetFormData() {
       this.disableSendBtcButton = true;
+      this.disableSendEthButton = true;
       this.showErrorMessage = false;
       this.error_message = "";
       this.showSendToAddress = false;
@@ -321,6 +329,7 @@ export default {
               contractComplete = true;
               this.showPaymentSent = true;
               this.disableSendBtcButton = false;
+              this.disableSendEthButton = false;
               clearInterval(interval);
               console.log("contract complete");
               break;
@@ -328,6 +337,7 @@ export default {
               this.showErrorMessage = true;
               this.error_message = this.contract.message;
               this.disableSendBtcButton = false;
+              this.disableSendEthButton = false;
               clearInterval(interval);
               console.log("contract complete");
               break;
@@ -338,6 +348,7 @@ export default {
           if (tries < 1) {
             clearInterval(interval);
             this.disableSendBtcButton = false;
+            this.disableSendEthButton = false;
             console.log(
               "cancelled checking contract " + this.contract._id + " timed out"
             );
@@ -348,7 +359,7 @@ export default {
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
       // Посчитать в BTC
-      const rate = this.allRates.find(item => item.coin == "BTC");
+      let rate = this.allRates.find(item => item.coin == "BTC");
       if (rate) {
         // console.log("btc rate: ", rate);
         const buy_price = rate.sell;
@@ -356,14 +367,24 @@ export default {
         this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
 
-      // TODO: посчитать в ETH, USDT
+      // Посчитать в ETH
+      rate = this.allRates.find(item => item.coin == "ETH");
+      if (rate) {
+        // console.log("btc rate: ", rate);
+        const buy_eth_price = rate.sell;
+        this.buy_amount_eth = this.sell_amount / buy_eth_price;
+        this.buy_amount_eth = utils.formatAmount(this.buy_amount_eth, "ETH");
+      }
+
+      // TODO: посчитать в USDT
     },
     // Загружаем текущие курсы валют
     updateRates(callback) {
-      utils.getRates((allRates, btc_usd, bip_usd) => {
+      utils.getRates((allRates, btc_usd, bip_usd, eth_usd) => {
         this.allRates = allRates;
         this.btc_usd = btc_usd;
         this.bip_usd = bip_usd;
+        this.eth_usd = eth_usd;
         callback(true);
       });
     },
@@ -378,8 +399,8 @@ export default {
     myFormat(amount, type) {
       return utils.myFormat(amount, type);
     },
-    myFullFormat(amount, coin) {
-      return utils.formatSendingAmount(amount, coin);
+    formatWithCoin(amount, coin) {
+      return utils.formatWithCoin(amount, coin);
     }
   }
 };
