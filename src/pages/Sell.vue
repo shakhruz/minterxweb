@@ -110,7 +110,7 @@
                 Перевод в размере
                 <strong>{{ contract.receivedCoins | myFullFormat(sell_coin) }}</strong> для обмена получен.
                 <br />Отправляем
-                <strong>{{ contract.send_amount }} {{ buy_coin }}</strong>
+                <strong>{{ contract.send_amount | | myFullFormat(sell_coin) }}</strong>
                 на адрес {{dest_address}}
               </div>
               <div v-if="showPaymentSent" class="message">

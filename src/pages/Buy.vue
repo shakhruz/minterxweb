@@ -133,7 +133,7 @@
                 <br />Проверить можно здесь -
                 <a
                   _target="blank"
-                  v-bind:href="''+ contract.outgoingTx +''"
+                  v-bind:href="'https://explorer.minter.network/transactions/'+ contract.outgoingTx"
                 >{{ contract.outgoingTx }}</a>
                 <br />Спасибо за покупку!
               </div>
