@@ -119,7 +119,7 @@
                 <br />Проверить можно здесь -
                 <a
                   _target="blank"
-                  v-bind:href="''+ contract.outgoingTx +''"
+                  v-bind:href="'https://blockchain.com/btc/tx/'+ contract.outgoingTx"
                 >{{ contract.outgoingTx }}</a>
                 <br />Спасибо за покупку!
               </div>
@@ -377,10 +377,10 @@ export default {
   filters: {
     myFormat(amount, type) {
       return utils.myFormat(amount, type);
+    },
+    myFullFormat(amount, coin) {
+      return utils.formatSendingAmount(amount, coin);
     }
-  },
-  myFullFormat(amount, coin) {
-    return utils.formatSendingAmount(amount, coin);
   }
 };
 </script>
