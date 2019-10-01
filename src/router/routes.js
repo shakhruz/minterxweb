@@ -1,27 +1,27 @@
-
 const routes = [
   {
-    path: '/',
-    component: () => import('layouts/BuyLayout.vue'),
-    children: [
-      { path: '', component: () => import('pages/Buy.vue') },
-    ]
+    path: "/",
+    component: () => import("layouts/BuyLayout.vue"),
+    children: [{ path: "", component: () => import("pages/Buy.vue") }]
   },
   {
-    path: '/sell',
-    component: () => import('layouts/SellLayout.vue'),
-    children: [
-      { path: '', component: () => import('pages/Sell.vue') }
-    ]
+    path: "/sell",
+    component: () => import("layouts/SellLayout.vue"),
+    children: [{ path: "", component: () => import("pages/Sell.vue") }]
+  },
+  {
+    path: "/stats",
+    component: () => import("layouts/StatsLayout.vue"),
+    children: [{ path: "", component: () => import("pages/Stats.vue") }]
   }
-]
+];
 
 // Always leave this as last one
-if (process.env.MODE !== 'ssr') {
+if (process.env.MODE !== "ssr") {
   routes.push({
-    path: '*',
-    component: () => import('pages/Error404.vue')
-  })
+    path: "*",
+    component: () => import("pages/Error404.vue")
+  });
 }
 
-export default routes
+export default routes;

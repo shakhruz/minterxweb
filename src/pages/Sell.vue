@@ -165,12 +165,7 @@
             >О проекте</a>
           </div>
           <div class="footer__menu-item">
-            <a
-              href="/stats"
-              target="_blank"
-              rel="noopener"
-              class="footer__link link--hover"
-            >Статистика</a>
+            <a href="/#/stats" rel="noopener" class="footer__link link--hover">Статистика</a>
           </div>
           <div class="footer__menu-item">
             <a
