@@ -3,7 +3,7 @@
     <div class="main-wrap">
       <header class="header">
         <div class="header__container u-container u-container--large">
-          <a href="/" class="header__logo no-link is-active">
+          <a href="/#/" class="header__logo no-link is-active">
             <img
               src="/statics/minterx-long-logo.png"
               alt="MinterX"

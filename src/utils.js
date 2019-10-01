@@ -98,6 +98,7 @@ function createContract(
 
 // Возвращает форматированное кол-во токенов
 function formatAmount(amount, coin) {
+  if (!amount) return 0;
   switch (coin) {
     case "BIP":
       amount = Number(Math.trunc(amount * 10000) / 10000);
@@ -122,6 +123,7 @@ function formatAmount(amount, coin) {
 
 // Полноформатная сумма вместе с тикером токена
 function formatWithCoin(amount, coin) {
+  if (!amount) return "0 " + coin;
   switch (coin) {
     case "BIP":
       amount = Number(Math.trunc(amount * 10000) / 10000) + " " + coin;
