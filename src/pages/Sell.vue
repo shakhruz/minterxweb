@@ -157,19 +157,11 @@
       <div class="u-container u-container--large">
         <div class="footer__menu">
           <div class="footer__menu-item">
-            <a
-              href="/about"
-              target="_blank"
-              rel="noopener"
-              class="footer__link link--hover"
-            >О проекте</a>
-          </div>
-          <div class="footer__menu-item">
             <a href="/#/stats" rel="noopener" class="footer__link link--hover">Статистика</a>
           </div>
           <div class="footer__menu-item">
             <a
-              href="/privacy.pdf"
+              href="/statics/privacy.pdf"
               target="_blank"
               rel="noopener"
               class="footer__link link--hover"
@@ -177,7 +169,7 @@
           </div>
           <div class="footer__menu-item">
             <a
-              href="/terms.pdf"
+              href="/statics/terms.pdf"
               target="_blank"
               rel="noopener"
               class="footer__link link--hover"
@@ -185,7 +177,7 @@
           </div>
           <div class="footer__menu-item">
             <a
-              href="/disclaimer.pdf"
+              href="/statics/disclaimer.pdf"
               target="_blank"
               rel="noopener"
               class="footer__link link--hover"

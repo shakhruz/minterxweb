@@ -29,7 +29,7 @@
 import { openURL } from "quasar";
 
 export default {
-  name: "SellLayout",
+  name: "StatsLayout",
   data() {
     return {
       leftDrawerOpen: false
