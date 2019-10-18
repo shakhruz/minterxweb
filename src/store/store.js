@@ -3,7 +3,12 @@ import Vue from "vue";
 const state = {
   bipPrices: {},
   usdPrices: {},
-  contracts: {}
+  contracts: {},
+  socket: {
+    isConnected: false,
+    message: "",
+    reconnectError: false
+  }
 };
 
 const mutations = {
@@ -21,12 +26,36 @@ const mutations = {
   },
   updateUsdPrice(state, payload) {
     Object.assign(state.usdPrices[payload.token], payload.price);
+  },
+  SOCKET_ONOPEN(state, event) {
+    Vue.prototype.$socket = event.currentTarget;
+    state.socket.isConnected = true;
+  },
+  SOCKET_ONCLOSE(state, event) {
+    state.socket.isConnected = false;
+  },
+  SOCKET_ONERROR(state, event) {
+    console.error(state, event);
+  },
+  // default handler called for all methods
+  SOCKET_ONMESSAGE(state, message) {
+    state.socket.message = message;
+  },
+  // mutations for reconnect methods
+  SOCKET_RECONNECT(state, count) {
+    console.info(state, count);
+  },
+  SOCKET_RECONNECT_ERROR(state) {
+    state.socket.reconnectError = true;
   }
 };
 
 const actions = {
   calcPrice({}, payload) {
     console.log("create contract...");
+  },
+  sendMessage: function(context, message) {
+    Vue.prototype.$socket.send(message);
   }
 };
 

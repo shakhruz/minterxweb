@@ -214,16 +214,6 @@ import data from "../data.js";
 
 import { mapState, mapActions } from "vuex";
 
-// import VueNativeSock from "vue-native-websocket";
-
-// Vue.use(VueNativeSock, "ws://localhost:9090", {
-//   reconnection: true, // (Boolean) whether to reconnect automatically (false)
-//   reconnectionAttempts: 5, // (Number) number of reconnection attempts before giving up (Infinity),
-//   reconnectionDelay: 3000 // (Number) how long to initially wait before attempting a new (1000)
-// });
-
-// this.$options.sockets.onmessage = data => console.log("got message:", data);
-
 const copy = require("clipboard-copy");
 
 export default {
@@ -267,6 +257,8 @@ export default {
       this.updateSellAmount(this.sell_amount);
     });
 
+    this.$options.sockets.onmessage = data => console.log("got message:", data);
+
     // обновляем регулярно
     // setInterval(() => {
     //   this.updateRates(result => {
@@ -277,6 +269,9 @@ export default {
   },
   mounted() {
     // console.log("mounted...")
+  },
+  destroyed() {
+    // delete this.$options.sockets.onmessage;
   },
   methods: {
     ...mapActions("store", ["calcPrice"]),

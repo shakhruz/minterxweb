@@ -1,8 +1,13 @@
 import Vue from "vue";
 import Vuex from "vuex";
-
+import VueNativeSock from "vue-native-websocket";
 import store from "./store";
+import storeAll from "../store";
 
+Vue.use(VueNativeSock, "ws://localhost:9090", {
+  store: storeAll,
+  format: "json"
+});
 Vue.use(Vuex);
 
 /*

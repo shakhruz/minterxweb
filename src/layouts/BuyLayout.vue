@@ -26,8 +26,6 @@
 </template>
 
 <script>
-import { openURL } from "quasar";
-
 export default {
   name: "BuyLayout",
   data() {
@@ -35,9 +33,7 @@ export default {
       leftDrawerOpen: false
     };
   },
-  methods: {
-    openURL
-  }
+  methods: {}
 };
 </script>
 
