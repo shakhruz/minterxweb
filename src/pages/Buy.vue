@@ -212,6 +212,18 @@ import { Notify } from "quasar";
 import utils from "../utils.js";
 import data from "../data.js";
 
+import { mapState, mapActions } from "vuex";
+
+// import VueNativeSock from "vue-native-websocket";
+
+// Vue.use(VueNativeSock, "ws://localhost:9090", {
+//   reconnection: true, // (Boolean) whether to reconnect automatically (false)
+//   reconnectionAttempts: 5, // (Number) number of reconnection attempts before giving up (Infinity),
+//   reconnectionDelay: 3000 // (Number) how long to initially wait before attempting a new (1000)
+// });
+
+// this.$options.sockets.onmessage = data => console.log("got message:", data);
+
 const copy = require("clipboard-copy");
 
 export default {
@@ -256,18 +268,19 @@ export default {
     });
 
     // обновляем регулярно
-    setInterval(() => {
-      this.updateRates(result => {
-        console.log("rates ready..." + result);
-        this.updateSellAmount(this.sell_amount);
-      });
-    }, 10000);
+    // setInterval(() => {
+    //   this.updateRates(result => {
+    //     console.log("rates ready..." + result);
+    //     this.updateSellAmount(this.sell_amount);
+    //   });
+    // }, 10000);
   },
   mounted() {
     // console.log("mounted...")
   },
   methods: {
-    // обнулить состояние формы зяавки
+    ...mapActions("store", ["calcPrice"]),
+    // обнулить состояние формы заявки
     resetFormData() {
       this.disableSendBtcButton = true;
       this.disableSendEthButton = true;
@@ -303,7 +316,8 @@ export default {
       let contractComplete = false;
       console.log("checking contract ", this.contract._id);
 
-      let tries = 60 * 60; // даем 60 минут на завершение контракта
+      let tries = 60 * 60;
+      // даем 60 минут на завершение контракта
       let interval = setInterval(() => {
         utils.getContractState(this.contract._id, newContract => {
           this.contract = newContract;
@@ -396,7 +410,9 @@ export default {
       }
     }
   },
-  computed: {},
+  computed: {
+    ...mapState("store", ["contracts", "bipPrices", "usdPrices"])
+  },
   filters: {
     myFormat(amount, type) {
       return utils.myFormat(amount, type);
