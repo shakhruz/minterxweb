@@ -14,12 +14,12 @@ function formatLongNumber(long_number) {
 function getRates(callback) {
   fetch(data.back_url + "rates")
     .then(res => res.json())
-    .then(json_rates => {
+    .then(bipPrices => {
       //   console.log("rates: ", json_rates);
       fetch(data.back_url + "usd_price")
         .then(res => res.json())
-        .then(json => {
-          callback(json_rates.rates, json.btc_usd, json.bip_usd, json.eth_usd);
+        .then(usdPrices => {
+          callback(bipPrices, usdPrices);
         })
         .catch(console.error);
     })

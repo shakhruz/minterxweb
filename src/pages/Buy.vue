@@ -6,14 +6,14 @@
           <div class="u-cell u-cell--large--auto">
             <div class="dashboard__price-title">ЦЕНА ПРОДАЖИ BIP</div>
             <div class="dashboard__price">
-              <span class="dashboard__price-value">${{ bip_usd | myFormat("longUSD") }}</span>
+              <span class="dashboard__price-value">${{ usdPrices.bip_usd | myFormat("longUSD") }}</span>
             </div>
             <div class="dashboard__period-title">
-              1 BTC = ${{ btc_usd }}
+              1 BTC = ${{ usdPrices.btc_usd }}
               <br />
-              1000 satoshi = ~${{ (btc_usd / 100000) | myFormat("fullUSD") }}
+              1000 satoshi = ~${{ (usdPrices.btc_usd / 100000) | myFormat("fullUSD") }}
               <br />
-              1 ETH = ~${{ (eth_usd) | myFormat("fullUSD") }}
+              1 ETH = ~${{ (usdPrices.eth_usd) | myFormat("fullUSD") }}
             </div>
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
@@ -32,7 +32,7 @@
                         <img src="/statics/bip_token_small.png" width="40" height="40" />
                       </template>
                     </q-input>
-                    <span>~${{ (sell_amount * bip_usd) | myFormat("fullUSD") }}</span>
+                    <span>~${{ (sell_amount * usdPrices.bip_usd) | myFormat("fullUSD") }}</span>
                     <div class="price_info">
                       <div style="margin-top: 20px">Будет стоить:</div>
                       <ul>
@@ -212,7 +212,7 @@ import { Notify } from "quasar";
 import utils from "../utils.js";
 import data from "../data.js";
 
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapMutations } from "vuex";
 
 const copy = require("clipboard-copy");
 
@@ -233,10 +233,10 @@ export default {
       showAddressErrorMessage: false,
 
       // цены и курсы
-      btc_usd: 0,
-      bip_usd: 0,
-      eth_usd: 0,
-      allRates: [],
+      // btc_usd: 0,
+      // bip_usd: 0,
+      // eth_usd: 0,
+      // allRates: [],
 
       // данные шага 2, состояние текущей сделки
       showStep1: true,
@@ -257,24 +257,30 @@ export default {
       this.updateSellAmount(this.sell_amount);
     });
 
-    this.$options.sockets.onmessage = data => console.log("got message:", data);
-
-    // обновляем регулярно
-    // setInterval(() => {
-    //   this.updateRates(result => {
-    //     console.log("rates ready..." + result);
-    //     this.updateSellAmount(this.sell_amount);
-    //   });
-    // }, 10000);
+    this.$options.sockets.onmessage = data => {
+      const json_data = JSON.parse(data.data);
+      console.log("got message:", json_data);
+      switch (json_data.type) {
+        case "usdPrices":
+          this.$store.commit("store/setUsdPrices", json_data);
+          this.updateSellAmount();
+          break;
+        case "bipPrices":
+          this.$store.commit("store/setBipPrices", json_data);
+          this.updateSellAmount();
+          break;
+      }
+    };
   },
   mounted() {
     // console.log("mounted...")
   },
   destroyed() {
-    // delete this.$options.sockets.onmessage;
+    delete this.$options.sockets.onmessage;
   },
   methods: {
     ...mapActions("store", ["calcPrice"]),
+    ...mapMutations(["setUsdPrices", "setBipPrices"]),
     // обнулить состояние формы заявки
     resetFormData() {
       this.disableSendBtcButton = true;
@@ -361,31 +367,28 @@ export default {
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
-      // посчитать в BTC
-      let rate = this.allRates.find(item => item.coin == "BTC");
-      if (rate) {
-        const buy_price = rate.buy;
+      if (this.bipPrices.BTC) {
+        const buy_price = this.bipPrices.BTC.buy; //rate.buy;
         this.buy_amount_btc = this.sell_amount / buy_price;
         this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
 
-      // посчитать в ETH
-      rate = this.allRates.find(item => item.coin == "ETH");
-      if (rate) {
-        const buy_eth_price = rate.buy;
+      if (this.bipPrices.ETH) {
+        const buy_eth_price = this.bipPrices.ETH.buy;
         this.buy_amount_eth = this.sell_amount / buy_eth_price;
         this.buy_amount_eth = utils.formatAmount(this.buy_amount_eth, "ETH");
       }
-
-      // TODO: посчитать в USDT
     },
     // Загружаем текущие курсы валют
     updateRates(callback) {
-      utils.getRates((allRates, btc_usd, bip_usd, eth_usd) => {
-        this.allRates = allRates;
-        this.btc_usd = btc_usd;
-        this.bip_usd = bip_usd;
-        this.eth_usd = eth_usd;
+      utils.getRates((bipPrices, usdPrices) => {
+        this.$store.commit("store/setUsdPrices", usdPrices);
+        this.$store.commit("store/setBipPrices", bipPrices);
+
+        // this.allRates = allRates;
+        // this.btc_usd = btc_usd;
+        // this.bip_usd = bip_usd;
+        // this.eth_usd = eth_usd;
         callback(true);
       });
     },
