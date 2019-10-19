@@ -5,17 +5,6 @@
         <div class="u-grid u-grid--vertical-margin">
           <div class="u-cell u-cell--large--auto">
             <bipprice type="buy" />
-            <!-- <div class="dashboard__price-title">ЦЕНА ПРОДАЖИ BIP</div>
-            <div class="dashboard__price">
-              <span class="dashboard__price-value">${{ usdPrices.bip_usd | myFormat("longUSD") }}</span>
-            </div>
-            <div class="dashboard__period-title">
-              1 BTC = ${{ usdPrices.btc_usd }}
-              <br />
-              1000 satoshi = ~${{ (usdPrices.btc_usd / 100000) | myFormat("fullUSD") }}
-              <br />
-              1 ETH = ~${{ (usdPrices.eth_usd) | myFormat("fullUSD") }}
-            </div>-->
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
             <div class="history__chart-wrap" style>
