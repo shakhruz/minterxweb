@@ -123,7 +123,7 @@
                 <br />Проверить можно здесь -
                 <a
                   _target="blank"
-                  v-bind:href="'https://blockchain.com/btc/tx/'+ contract.outgoingTx"
+                  v-bind:href="'https://blockchain.com/btc/tx/'+ contract.outgoingTxLink"
                 >{{ contract.outgoingTx }}</a>
                 <br />Спасибо за покупку!
               </div>
@@ -213,12 +213,6 @@ export default {
       disableSendEthButton: false,
       showAddressErrorMessage: false,
 
-      // цены и курсы
-      // btc_usd: 0,
-      // bip_usd: 0,
-      // eth_usd: 0,
-      // allRates: [],
-
       // данные шага 2, состояние текущей сделки
       showStep1: true,
       showStep2: false,
@@ -239,28 +233,38 @@ export default {
     });
 
     this.$options.sockets.onmessage = data => {
-      this.updateSellAmount();
-      // const json_data = JSON.parse(data.data);
-      // console.log("got message:", json_data);
-      // switch (json_data.type) {
-      //   case "usdPrices":
-      //     // this.$store.commit("store/setUsdPrices", json_data);
-      //     this.updateSellAmount();
-      //     break;
-      //   case "bipPrices":
-      //     // this.$store.commit("store/setBipPrices", json_data);
-      //     this.updateSellAmount();
-      //     break;
-      // }
+      const json_data = JSON.parse(data.data);
+      console.log("got message:", json_data.type);
+      switch (json_data.type) {
+        case "usdPrices":
+          this.updateSellAmount();
+          break;
+        case "bipPrices":
+          this.updateSellAmount();
+          break;
+        case "new_contract":
+          console.log("new contract ");
+          break;
+        case "got_payment":
+          console.log("got_payment");
+          if (contract && contract._id == json_data.contract._id) {
+            this.gotPayment();
+          }
+          break;
+        case "error_contract":
+          console.log("error_contract");
+          if (contract && contract._id == json_data.contract._id) {
+            this.errorContract();
+          }
+          break;
+        case "completed_contract":
+          console.log("completed_contract");
+          if (contract && contract._id == json_data.contract._id) {
+            this.completedContract();
+          }
+          break;
+      }
     };
-
-    // обновляем регулярно
-    // setInterval(() => {
-    //   this.updateRates(result => {
-    //     console.log("rates ready..." + result);
-    //     this.updateSellAmount(this.sell_amount);
-    //   });
-    // }, 10000);
   },
   mounted() {
     // console.log("mounted...");
@@ -303,65 +307,29 @@ export default {
         contract => {
           console.log("new contract: ", contract);
           this.contract = contract;
-          this.processContract();
+          this.showStep1 = false;
+          this.showStep2 = true;
+
+          this.showSendToAddress = true;
+          let contractComplete = false;
         }
       );
     },
-    // Отслеживаем контракт, ждем оплату, следим за отправкой купленных токенов
-    processContract() {
-      this.showStep1 = false;
-      this.showStep2 = true;
-
-      this.showSendToAddress = true;
-      let contractComplete = false;
-      console.log("checking contract ", this.contract._id);
-
-      let tries = 60 * 60; // даем 60 минут на завершение контракта
-      let interval = setInterval(() => {
-        utils.getContractState(this.contract._id, newContract => {
-          this.contract = newContract;
-          console.log("updated contract: ", this.contract);
-          switch (this.contract.state) {
-            case "waiting for payment":
-              console.log("waiting for payment...");
-              break;
-            case "sending":
-              this.showGotPayment = true;
-              break;
-            case "payment received":
-              this.showGotPayment = true;
-              break;
-            case "completed":
-              this.showGotPayment = true;
-              contractComplete = true;
-              this.showPaymentSent = true;
-              this.disableSendBtcButton = false;
-              this.disableSendEthButton = false;
-              clearInterval(interval);
-              console.log("contract complete");
-              break;
-            case "error":
-              this.showErrorMessage = true;
-              this.error_message = this.contract.message;
-              this.disableSendBtcButton = false;
-              this.disableSendEthButton = false;
-              clearInterval(interval);
-              console.log("contract complete");
-              break;
-            default:
-              console.log("unknown contract state: ", this.contract.state);
-          }
-          tries -= 1;
-          if (tries < 1) {
-            clearInterval(interval);
-            this.disableSendBtcButton = false;
-            this.disableSendEthButton = false;
-            console.log(
-              "cancelled checking contract " + this.contract._id + " timed out"
-            );
-          }
-        });
-      }, 1000);
+    gotPayment() {
+      this.showGotPayment = true;
+    },
+    completedContract() {
+      this.showGotPayment = true;
+      contractComplete = true;
+      this.showPaymentSent = true;
+      this.disableSendBtcButton = false;
+      this.disableSendEthButton = false;
+    },
+    errorContract() {
+      this.showErrorMessage = true;
+      this.error_message = this.contract.message;
+      this.disableSendBtcButton = false;
+      this.disableSendEthButton = false;
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
