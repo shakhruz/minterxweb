@@ -4,7 +4,8 @@
       <section class="u-section--margin--top u-container">
         <div class="u-grid u-grid--vertical-margin">
           <div class="u-cell u-cell--large--auto">
-            <div class="dashboard__price-title">ЦЕНА ПРОДАЖИ BIP</div>
+            <bipprice type="buy" />
+            <!-- <div class="dashboard__price-title">ЦЕНА ПРОДАЖИ BIP</div>
             <div class="dashboard__price">
               <span class="dashboard__price-value">${{ usdPrices.bip_usd | myFormat("longUSD") }}</span>
             </div>
@@ -14,7 +15,7 @@
               1000 satoshi = ~${{ (usdPrices.btc_usd / 100000) | myFormat("fullUSD") }}
               <br />
               1 ETH = ~${{ (usdPrices.eth_usd) | myFormat("fullUSD") }}
-            </div>
+            </div>-->
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
             <div class="history__chart-wrap" style>
@@ -396,6 +397,9 @@ export default {
     formatWithCoin(amount, coin) {
       return utils.formatWithCoin(amount, coin);
     }
+  },
+  components: {
+    bipprice: require("components/BIPPrice.vue").default
   }
 };
 </script>

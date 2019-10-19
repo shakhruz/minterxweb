@@ -4,7 +4,8 @@
       <section class="u-section--margin--top u-container">
         <div class="u-grid u-grid--vertical-margin">
           <div class="u-cell u-cell--large--auto">
-            <div class="dashboard__price-title">ЦЕНА ПОКУПКИ BIP</div>
+            <bipprice type="sell" />
+            <!-- <div class="dashboard__price-title">ЦЕНА ПОКУПКИ BIP</div>
             <div class="dashboard__price">
               <span class="dashboard__price-value">${{ usdPrices.bip_usd | myFormat("longUSD") }}</span>
             </div>
@@ -14,7 +15,7 @@
               1000 satoshi = ~${{ (usdPrices.btc_usd / 100000) | myFormat("fullUSD") }}
               <br />
               1 ETH = ~${{ (usdPrices.eth_usd) | myFormat("fullUSD") }}
-            </div>
+            </div>-->
           </div>
           <div class="u-cell u-cell--large--auto history-cell">
             <div class="history__chart-wrap" style>
@@ -334,7 +335,7 @@ export default {
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
       if (this.bipPrices.BTC) {
-        const buy_price = this.bipPrices.BTC.sell; //rate.buy;
+        const buy_price = this.bipPrices.BTC.sell;
         this.buy_amount_btc = this.sell_amount / buy_price;
         this.buy_amount_btc = utils.formatAmount(this.buy_amount_btc, "BTC");
       }
@@ -369,6 +370,9 @@ export default {
     formatWithCoin(amount, coin) {
       return utils.formatWithCoin(amount, coin);
     }
+  },
+  components: {
+    bipprice: require("components/BIPPrice.vue").default
   }
 };
 </script>
