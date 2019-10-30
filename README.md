@@ -1,26 +1,16 @@
 # MinterX (minterxweb)
 
-minterx crypto bank
+## ==== 1. Установка ====
+установить quasar
+npm install -g @quasar/cli
 
-## Install the dependencies
-```bash
-yarn
-```
+установить модули
+npm install
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
+## === Запуск
+npx quasar dev
 
-### Lint the files
-```bash
-yarn run lint
-```
+## === Публикация
+Подготовить билд для продакшена
 
-### Build the app for production
-```bash
 quasar build
-```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
