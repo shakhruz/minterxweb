@@ -272,7 +272,6 @@ export default {
         sell_coin,
         this.buy_coin,
         this.sell_amount,
-        this.buy_amount_btc,
         this.dest_address,
         contract => {
           console.log("new contract: ", contract);

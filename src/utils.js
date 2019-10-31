@@ -69,17 +69,10 @@ function isValidETHAddress(address) {
 }
 
 // Создаем контракт в базе через бэкенд
-function createContract(
-  sell_coin,
-  buy_coin,
-  sell_amount,
-  buy_amount,
-  toAddress,
-  callback
-) {
+function createContract(sell_coin, buy_coin, sell_amount, toAddress, callback) {
   console.log("create contract");
 
-  const opts = { sell_coin, buy_coin, sell_amount, buy_amount, toAddress };
+  const opts = { sell_coin, buy_coin, sell_amount, toAddress };
 
   fetch(data.back_url + "contracts", {
     method: "POST",

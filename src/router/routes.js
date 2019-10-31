@@ -1,18 +1,12 @@
 const routes = [
   {
     path: "/",
-    component: () => import("layouts/BuyLayout.vue"),
-    children: [{ path: "", component: () => import("pages/Buy.vue") }]
-  },
-  {
-    path: "/sell",
-    component: () => import("layouts/SellLayout.vue"),
-    children: [{ path: "", component: () => import("pages/Sell.vue") }]
-  },
-  {
-    path: "/stats",
-    component: () => import("layouts/StatsLayout.vue"),
-    children: [{ path: "", component: () => import("pages/Stats.vue") }]
+    component: () => import("layouts/Index.vue"),
+    children: [
+      { path: "", component: () => import("pages/Index.vue") },
+      { path: "/contract/:id", component: () => import("pages/Contract.vue") },
+      { path: "/stats", component: () => import("pages/Stats.vue") }
+    ]
   }
 ];
 
