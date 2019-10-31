@@ -42,11 +42,16 @@
               </div>
               <q-input
                 outlined
+                spellcheck="false"
+                autocomplete="off"
                 v-model="dest_address"
                 @input="validateAddress"
                 :label="'адрес отправки ' + buy_coin"
               />
-              <div v-if="showAddressError" class="error_message">Некорректный адрес BTC</div>
+              <div
+                v-if="showAddressError"
+                class="error_message"
+              >Некорректный адрес {{this.buy_coin}}</div>
               <q-btn
                 outline
                 color="primary"
@@ -70,16 +75,12 @@ import data from "../data.js";
 
 import { mapState, mapActions, mapMutations } from "vuex";
 
-const copy = require("clipboard-copy");
-
 export default {
   data() {
     return {
       // данные кулькулятора
       sell_amount: 0.001,
       buy_amount: 100,
-      buy_amount_btc: 0,
-      buy_amount_eth: 0,
       sell_coin: "BTC",
       buy_coin: "BIP",
       dest_address: "",
@@ -92,27 +93,13 @@ export default {
       showAddressError: false,
 
       invalidAddress: true,
-      disableSendBtcButton: false,
-      disableSendEthButton: false,
-      showAddressErrorMessage: false,
-
-      // данные шага 2, состояние текущей сделки
-      showStep1: true,
-      showStep2: false,
-      contract: null,
-
-      showSendToAddress: false,
-      showGotPayment: false,
-      showPaymentSent: false,
-      showErrorMessage: false,
-      error_message: ""
+      contract: null
     };
   },
   created() {
     // обновляем сразу
     this.updateRates(result => {
       console.log("rates ready...", this.bipPrices);
-      // this.updateSellAmount(this.sell_amount);
       this.updateBuyAmount(this.buy_amount);
     });
 
@@ -129,25 +116,8 @@ export default {
           this.updateSellAmount();
           break;
         case "new_contract":
-          console.log("new contract ");
-          break;
-        case "got_payment":
-          console.log("got_payment");
-          if (contract && contract._id == json_data.contract._id) {
-            this.gotPayment();
-          }
-          break;
-        case "error_contract":
-          console.log("error_contract");
-          if (contract && contract._id == json_data.contract._id) {
-            this.errorContract();
-          }
-          break;
-        case "completed_contract":
-          console.log("completed_contract");
-          if (contract && contract._id == json_data.contract._id) {
-            this.completedContract();
-          }
+          console.log("new contract ", json_data);
+          this.$router.push("/contract/" + json_data.contract._id);
           break;
       }
     };
@@ -161,51 +131,21 @@ export default {
   methods: {
     ...mapActions("store", ["calcPrice"]),
     ...mapMutations(["setUsdPrices", "setBipPrices"]),
-    // обнулить состояние формы заявки
-    resetFormData() {
-      this.disableSendBtcButton = true;
-      this.disableSendEthButton = true;
-      this.showErrorMessage = false;
-      this.error_message = "";
-      this.showSendToAddress = false;
-      this.showGotPayment = false;
-      this.showPaymentSent = false;
-    },
     // Создаем новый контракт в базе данных
-    createContract(sell_coin) {
-      this.resetFormData();
+    createContract() {
       console.log("create contract");
+      this.disableSendButton = true;
       utils.createContract(
-        sell_coin,
+        this.sell_coin,
         this.buy_coin,
         this.sell_amount,
         this.dest_address,
         contract => {
           console.log("new contract: ", contract);
           this.contract = contract;
-          this.showStep1 = false;
-          this.showStep2 = true;
-
-          this.showSendToAddress = true;
-          let contractComplete = false;
+          this.$router.push("/contract/" + contract._id);
         }
       );
-    },
-    gotPayment() {
-      this.showGotPayment = true;
-    },
-    completedContract() {
-      this.showGotPayment = true;
-      contractComplete = true;
-      this.showPaymentSent = true;
-      this.disableSendBtcButton = false;
-      this.disableSendEthButton = false;
-    },
-    errorContract() {
-      this.showErrorMessage = true;
-      this.error_message = this.contract.message;
-      this.disableSendBtcButton = false;
-      this.disableSendEthButton = false;
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
@@ -286,7 +226,6 @@ export default {
       this.sell_amount = this.buy_amount;
       this.buy_amount = sell_amount;
       this.validateAddress(this.dest_address);
-      // this.updateSellAmount(this.sell_amount);
     },
 
     // Загружаем текущие курсы валют
@@ -294,28 +233,8 @@ export default {
       utils.getRates((bipPrices, usdPrices) => {
         this.$store.commit("store/setUsdPrices", usdPrices);
         this.$store.commit("store/setBipPrices", bipPrices);
-
-        // this.allRates = allRates;
-        // this.btc_usd = btc_usd;
-        // this.bip_usd = bip_usd;
-        // this.eth_usd = eth_usd;
         callback(true);
       });
-    },
-    // скопировать в буфер обмена
-    copyAddress(arg) {
-      copy(this.contract.receivingAddress);
-      Notify.create("Скопировал Адрес в буфер обмена");
-    },
-    // проверить минтер адрес
-    validateMinterAddress(address) {
-      if (utils.isValidMinterAddress(address)) {
-        this.invalidAddress = false;
-        this.showAddressErrorMessage = false;
-      } else {
-        this.invalidAddress = true;
-        this.showAddressErrorMessage = true;
-      }
     },
     validateAddress(address) {
       const valid = utils.isValidAddress(address, this.buy_coin);

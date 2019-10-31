@@ -38,12 +38,14 @@ function getContractState(contractId, callback) {
 }
 
 function isValidAddress(address, coin) {
-  if (coin == "BTC") {
-    return WAValidator.validate(address, "BTC");
-  } else {
-    if (coin == "ETH" || coin == "USDT") {
+  switch (coin) {
+    case "BTC":
+      return WAValidator.validate(address, "BTC");
+    case "ETH":
       return isValidETHAddress(address);
-    }
+    case "BIP":
+      return isValidMinterAddress(address);
+      break;
   }
 }
 
@@ -54,6 +56,17 @@ function getAllContracts(callback) {
     .then(json => {
       // this.allContracts = json
       console.log("contracts: ", this.allContracts);
+      callback(json);
+    })
+    .catch(console.error);
+}
+
+// Загружаем контракт из базы
+function getContract(contract_id, callback) {
+  fetch(data.back_url + "contract/" + contract_id)
+    .then(res => res.json())
+    .then(json => {
+      console.log("contract json: ", json);
       callback(json);
     })
     .catch(console.error);
@@ -212,5 +225,6 @@ export default {
   completeContracts,
   formatBTC,
   myFormat,
-  isValidAddress
+  isValidAddress,
+  getContract
 };
