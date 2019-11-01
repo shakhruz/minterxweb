@@ -1,8 +1,8 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <div class="main-wrap">
-      <header class="header">
-        <div class="header__container u-container u-container--large">
+    <div>
+      <header>
+        <div>
           <!-- <a href="/#/" class="header__logo no-link is-active center">
             <img
               src="/statics/minterx-long-logo.png"
@@ -12,7 +12,6 @@
             />
           </a>-->
           {{ title }}
-          <div class="header__controls u-hidden-small-down"></div>
         </div>
       </header>
       <q-page-container>

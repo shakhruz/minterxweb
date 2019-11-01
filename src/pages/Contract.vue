@@ -2,55 +2,52 @@
   <q-page class="flex">
     <div class="main-content">
       <main>
-        <div v-if="showStep2" id="step2" class>
-          <div class>
-            <h2 class>Контракт на обмен {{ contract._id }}</h2>
+        <div v-if="showContract">
+          <div>
+            <div>Обмен {{ contract.sell_amount + " " + contract.sell_coin + " на " + contract.calc_amount + " " + contract.buy_coin }}</div>
+            <hr />
+            <div>ID контракта: {{ contract._id }}</div>
+            <div>Хэш контракта: {{ contract.hash }}</div>
+            <div>Начало контракта: {{ momentJS(contract.start_time).fromNow() }}</div>
+            <hr />
+            <div>Адрес отправки {{ contract.buy_coin }}: {{ contract.toAddress }}</div>
+            <hr />
 
             <div
-              v-if="showSendToAddress"
-              class="message"
-            >Ваша заявка на обмен принята. Пожалуйста отправьте {{ contract.sell_coin }} в течение 60 минут.</div>
-
-            <div v-if="showGotPayment" class="message">
-              Перевод в размере
-              <strong>{{ contract.receivedCoins | formatWithCoin(sell_coin) }}</strong> для обмена получен.
-              <br />Отправляем
-              <strong>{{ contract.send_amount }} {{ buy_coin }}</strong>
-              на адрес {{ dest_address }}
-            </div>
-
-            <div v-if="showPaymentSent" class="message">
-              Ваши {{ buy_coin }} отправлены на адрес {{ dest_address }}.
-              <br />Сделка завершена.
-              <br />Проверить можно здесь -
-              <a
-                _target="blank"
-                v-bind:href="contract.outgoingTxLink"
-              >{{ contract.outgoingTx }}</a>
-              <br />Спасибо за покупку!
-            </div>
-
-            <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>
-          </div>
-          <div class>
-            <form novalidate="novalidate" class>
-              <div class>
-                <label class>
-                  <span class>Отправьте {{ contract.sell_coin }} на адрес:</span>
-                </label>
-                <q-input v-model="contract.receivingAddress" readonly class="address">
-                  <template v-slot:after>
-                    <q-btn round dense flat icon="file_copy" @click.native="copyAddress" />
-                  </template>
-                </q-input>
-              </div>
+              v-if="showSendTo"
+            >Пожалуйста отправьте {{ contract.sell_amount }} {{ contract.sell_coin }} в течение 60 минут.</div>
+            <div>
+              <div>Адрес для отправки:</div>
+              <q-input v-model="contract.receivingAddress" readonly>
+                <template v-slot:after>
+                  <q-btn round dense flat icon="file_copy" @click.native="copyAddress" />
+                </template>
+              </q-input>
               <div class style="text-align: center">
                 <qriously
-                  :value="contract.sell_coin == 'BTC' ? 'bitcoin:' + contract.receivingAddress + '?amount=' + conract.sell_amount : contract.receivingAddress"
+                  :value="contract.sell_coin == 'BTC' ? 'bitcoin:' + contract.receivingAddress + '?amount=' + contract.sell_amount : contract.receivingAddress"
                   :size="300"
                 />
               </div>
-            </form>
+            </div>
+
+            <div v-if="showGotPayment">
+              <div>Ваш перевод на {{ contract.receivedCoins | formatWithCoin(contract.sell_coin) }} получен.</div>
+              <div>Отправляем {{ contract.send_amount | formatWithCoin(contract.buy_coin) }} на адрес {{ contract.toAddress }}</div>
+            </div>
+
+            <div v-if="showPaymentSent">
+              <div>
+                Перевод завершен. Проверить можно здесь -
+                <a
+                  _target="blank"
+                  v-bind:href="contract.outgoingTxLink"
+                >{{ contract.outgoingTx }}</a>
+              </div>
+              <div>Спасибо за покупку!</div>
+            </div>
+
+            <div v-if="showErrorMessage" class="error_message">Произошла ошибка: {{ error_message }}</div>
           </div>
         </div>
       </main>
@@ -63,6 +60,7 @@
 import { Notify } from "quasar";
 import utils from "../utils.js";
 import data from "../data.js";
+import moment from "moment";
 
 import { mapState, mapActions, mapMutations } from "vuex";
 
@@ -71,21 +69,22 @@ const copy = require("clipboard-copy");
 export default {
   data() {
     return {
-      // данные шага 2, состояние текущей сделки
-      showStep1: true,
-      showStep2: false,
       contract: null,
 
-      showSendToAddress: false,
+      showContract: false,
+      showSendTo: true,
       showGotPayment: false,
       showPaymentSent: false,
+      contractComplete: false,
       showErrorMessage: false,
       error_message: ""
     };
   },
   created() {
+    // Получить информацию о котракте иэ бэкенда
     utils.getContract(this.$route.params.id, contract => {
       this.contract = contract;
+      this.showContract = true;
     });
 
     this.$options.sockets.onmessage = data => {
@@ -113,9 +112,6 @@ export default {
       }
     };
   },
-  mounted() {
-    // console.log("mounted...")
-  },
   destroyed() {
     delete this.$options.sockets.onmessage;
   },
@@ -124,25 +120,27 @@ export default {
     ...mapMutations(["setUsdPrices", "setBipPrices"]),
     // Создаем новый контракт в базе данных
     gotPayment() {
+      this.showSendToAddress = false;
       this.showGotPayment = true;
     },
     completedContract() {
+      this.showSendToAddress = false;
       this.showGotPayment = true;
-      contractComplete = true;
+      this.contractComplete = true;
       this.showPaymentSent = true;
-      this.disableSendBtcButton = false;
-      this.disableSendEthButton = false;
     },
     errorContract() {
+      this.showSendToAddress = false;
       this.showErrorMessage = true;
       this.error_message = this.contract.message;
-      this.disableSendBtcButton = false;
-      this.disableSendEthButton = false;
     },
     // скопировать в буфер обмена
     copyAddress(arg) {
       copy(this.contract.receivingAddress);
       Notify.create("Скопировал Адрес в буфер обмена");
+    },
+    momentJS(time) {
+      return moment(time);
     }
   },
   computed: {
@@ -157,7 +155,6 @@ export default {
     }
   },
   components: {
-    bipprice: require("components/BIPPrice.vue").default,
     footer_links: require("components/footer.vue").default
   }
 };

@@ -99,7 +99,7 @@ export default {
   created() {
     // обновляем сразу
     this.updateRates(result => {
-      console.log("rates ready...", this.bipPrices);
+      console.log("rates ready...");
       this.updateBuyAmount(this.buy_amount);
     });
 

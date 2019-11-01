@@ -1,5 +1,5 @@
  <template>
-  <footer class="footer">
+  <!-- <footer class="footer">
     <div class="u-container u-container--large">
       <div class="footer__menu">
         <div class="footer__menu-item">
@@ -31,7 +31,7 @@
         </div>
       </div>
     </div>
-  </footer>
+  </footer>-->
 </template>
 
 <script>
