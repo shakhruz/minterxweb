@@ -26,6 +26,16 @@ function getRates(callback) {
     .catch(console.error);
 }
 
+// Получить все балансы
+function getBalances(callback) {
+  fetch(data.back_url + "balances")
+    .then(res => res.json())
+    .then(balances => {
+      callback(balances);
+    })
+    .catch(console.error);
+}
+
 // Получаем сосояние контракта в базе
 function getContractState(contractId, callback) {
   fetch(data.back_url + "contract/" + contractId)
@@ -215,6 +225,7 @@ function formatBTC(btc_amount) {
 export default {
   formatLongNumber,
   getRates,
+  getBalances,
   getContractState,
   getAllContracts,
   isValidMinterAddress,

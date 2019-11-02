@@ -4,6 +4,7 @@ const state = {
   bipPrices: {},
   usdPrices: {},
   contracts: {},
+  balances: {},
   socket: {
     isConnected: false,
     message: "",
@@ -17,6 +18,9 @@ const mutations = {
   },
   setUsdPrices(state, payload) {
     state.usdPrices = payload;
+  },
+  setBalances(state, payload) {
+    state.balances = payload;
   },
   addContract(state, payload) {
     Vue.set(state.contracts, payload.contract.id, payload.contract);
@@ -74,6 +78,9 @@ const getters = {
   },
   usdPrices: state => {
     return state.usdPrices;
+  },
+  balances: state => {
+    return state.balances;
   },
   contracts: state => {
     return state.contracts;

@@ -44,6 +44,10 @@
                 v-if="showAmountError"
                 class="error_message"
               >Сумма покупки {{this.buy_coin}} должна быть больше {{ this.minAmounts[this.buy_coin] }}</div>
+              <div
+                v-if="showNotEnoughError"
+                class="error_message"
+              >Слишком большая сумма для покупки. В наличии есть {{ balances[buy_coin] }} {{buy_coin}}</div>
               <q-input
                 outlined
                 spellcheck="false"
@@ -93,13 +97,13 @@ export default {
       sell_coins_options: ["BIP", "BTC", "ETH"],
       buy_coins_options: ["BIP", "BTC", "ETH"],
       minAmounts: { BIP: 100, BTC: 0.0001, ETH: 0.001 },
-      balances: { BIP: 0, BTC: 0, ETH: 0 },
 
       disableSendButton: false,
       showAddressError: false,
       invalidAddress: true,
 
       showAmountError: false,
+      showNotEnoughError: false,
 
       // контракт
       contract: null
@@ -109,6 +113,9 @@ export default {
     // обновляем сразу
     this.updateRates(result => {
       console.log("rates ready...");
+      this.updateBalances(result => {
+        console.log("balances ready...");
+      });
       this.updateBuyAmount(this.buy_amount);
     });
 
@@ -149,19 +156,27 @@ export default {
         this.showAmountError = false;
       }
 
-      console.log("create contract");
-      this.disableSendButton = true;
-      utils.createContract(
-        this.sell_coin,
-        this.buy_coin,
-        this.sell_amount,
-        this.dest_address,
-        contract => {
-          console.log("new contract: ", contract);
-          this.contract = contract;
-          this.$router.push("/contract/" + contract._id);
+      utils.getBalances(balance => {
+        if (balance[this.buy_coin] <= this.buy_amount) {
+          this.showNotEnoughError = true;
+          return;
+        } else {
+          this.showNotEnoughError = false;
+          console.log("create contract");
+          this.disableSendButton = true;
+          utils.createContract(
+            this.sell_coin,
+            this.buy_coin,
+            this.sell_amount,
+            this.dest_address,
+            contract => {
+              console.log("new contract: ", contract);
+              this.contract = contract;
+              this.$router.push("/contract/" + contract._id);
+            }
+          );
         }
-      );
+      });
     },
     // Калькулятор - обновляем сумму покупки
     updateSellAmount(arg) {
@@ -183,6 +198,18 @@ export default {
           }
       }
       this.buy_amount = utils.formatAmount(this.buy_amount, this.buy_coin);
+
+      if (this.buy_amount < this.minAmounts[this.buy_coin]) {
+        this.showAmountError = true;
+      } else {
+        this.showAmountError = false;
+      }
+
+      if (this.balance[this.buy_coin] <= this.buy_amount) {
+        this.showNotEnoughError = true;
+      } else {
+        this.showNotEnoughError = false;
+      }
     },
     updateBuyAmount(arg) {
       switch (this.sell_coin) {
@@ -252,6 +279,12 @@ export default {
         callback(true);
       });
     },
+    updateBalances(callback) {
+      utils.getBalances(new_balances => {
+        this.$store.commit("store/setBalances", new_balances);
+        callback(true);
+      });
+    },
     validateAddress(address) {
       const valid = utils.isValidAddress(address, this.buy_coin);
       if (valid) {
@@ -267,7 +300,7 @@ export default {
     }
   },
   computed: {
-    ...mapState("store", ["contracts", "bipPrices", "usdPrices"])
+    ...mapState("store", ["contracts", "bipPrices", "usdPrices", "balances"])
   },
   filters: {
     myFormat(amount, type) {
