@@ -8,7 +8,7 @@
             <hr />
             <div>ID контракта: {{ contract._id }}</div>
             <div>Хэш контракта: {{ contract.hash }}</div>
-            <div>Начало контракта: {{ momentJS(contract.start_time).fromNow() }}</div>
+            <div>Начало контракта: {{ momentJS(contract.start_time).calendar() }}</div>
             <hr />
             <div>Адрес отправки {{ contract.buy_coin }}: {{ contract.toAddress }}</div>
             <hr />
@@ -61,6 +61,8 @@ import { Notify } from "quasar";
 import utils from "../utils.js";
 import data from "../data.js";
 import moment from "moment";
+
+moment.locale("ru-RU");
 
 import { mapState, mapActions, mapMutations } from "vuex";
 

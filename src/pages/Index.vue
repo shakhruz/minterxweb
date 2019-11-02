@@ -40,6 +40,10 @@
                   @input="changeBuyToken"
                 />
               </div>
+              <div
+                v-if="showAmountError"
+                class="error_message"
+              >Сумма покупки {{this.buy_coin}} должна быть больше {{ this.minAmounts[this.buy_coin] }}</div>
               <q-input
                 outlined
                 spellcheck="false"
@@ -88,11 +92,16 @@ export default {
       allCoins: ["BIP", "BTC", "ETH"],
       sell_coins_options: ["BIP", "BTC", "ETH"],
       buy_coins_options: ["BIP", "BTC", "ETH"],
+      minAmounts: { BIP: 100, BTC: 0.0001, ETH: 0.001 },
+      balances: { BIP: 0, BTC: 0, ETH: 0 },
 
       disableSendButton: false,
       showAddressError: false,
-
       invalidAddress: true,
+
+      showAmountError: false,
+
+      // контракт
       contract: null
     };
   },
@@ -133,6 +142,13 @@ export default {
     ...mapMutations(["setUsdPrices", "setBipPrices"]),
     // Создаем новый контракт в базе данных
     createContract() {
+      if (this.buy_amount < this.minAmounts[this.buy_coin]) {
+        this.showAmountError = true;
+        return;
+      } else {
+        this.showAmountError = false;
+      }
+
       console.log("create contract");
       this.disableSendButton = true;
       utils.createContract(
